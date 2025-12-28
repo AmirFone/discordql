@@ -213,12 +213,15 @@ class DiscordExtractor:
         guild: GuildProtocol,
     ) -> None:
         """Sync server metadata."""
+        # Convert Asset to string hash if present
+        icon_hash = str(guild.icon.key) if guild.icon else None
+
         upsert_server(
             session=session,
             server_id=guild.id,
             name=guild.name,
             owner_id=guild.owner_id,
-            icon_hash=guild.icon,
+            icon_hash=icon_hash,
             member_count=guild.member_count,
             created_at=guild.created_at,
         )
@@ -233,6 +236,9 @@ class DiscordExtractor:
         """Sync all guild members."""
         member_count = 0
         async for member in guild.fetch_members():
+            # Convert Asset to string hash if present
+            avatar_hash = str(member.avatar.key) if member.avatar else None
+
             # Upsert user first
             upsert_user(
                 session=session,
@@ -240,7 +246,7 @@ class DiscordExtractor:
                 username=member.name,
                 discriminator=member.discriminator,
                 global_name=member.global_name,
-                avatar_hash=member.avatar,
+                avatar_hash=avatar_hash,
                 is_bot=member.bot,
                 created_at=member.created_at,
             )
@@ -295,6 +301,9 @@ class DiscordExtractor:
         message_count = 0
 
         async for message in channel.history(limit=None, after=after):
+            # Convert Asset to string hash if present
+            author_avatar = str(message.author.avatar.key) if message.author.avatar else None
+
             # Ensure author exists
             upsert_user(
                 session=session,
@@ -302,7 +311,7 @@ class DiscordExtractor:
                 username=message.author.name,
                 discriminator=message.author.discriminator,
                 global_name=message.author.global_name,
-                avatar_hash=message.author.avatar,
+                avatar_hash=author_avatar,
                 is_bot=message.author.bot,
                 created_at=message.author.created_at,
             )
@@ -316,7 +325,9 @@ class DiscordExtractor:
                 if hasattr(message, '_reply_to_author_id'):
                     reply_to_author_id = message._reply_to_author_id
 
-            # Insert message
+            # Insert message (convert enum to int value)
+            msg_type = message.type.value if hasattr(message.type, 'value') else int(message.type)
+
             insert_message(
                 session=session,
                 message_id=message.id,
@@ -326,7 +337,7 @@ class DiscordExtractor:
                 content=message.content,
                 created_at=message.created_at,
                 edited_at=message.edited_at,
-                message_type=message.type,
+                message_type=msg_type,
                 is_pinned=message.pinned,
                 is_tts=message.tts,
                 reply_to_message_id=reply_to_message_id,
@@ -340,6 +351,9 @@ class DiscordExtractor:
 
             # Process mentions
             for mentioned_user in message.mentions:
+                # Convert Asset to string hash if present
+                mentioned_avatar = str(mentioned_user.avatar.key) if mentioned_user.avatar else None
+
                 # Ensure mentioned user exists
                 upsert_user(
                     session=session,
@@ -347,7 +361,7 @@ class DiscordExtractor:
                     username=mentioned_user.name,
                     discriminator=mentioned_user.discriminator,
                     global_name=mentioned_user.global_name,
-                    avatar_hash=mentioned_user.avatar,
+                    avatar_hash=mentioned_avatar,
                     is_bot=mentioned_user.bot,
                     created_at=mentioned_user.created_at,
                 )
@@ -378,20 +392,35 @@ class DiscordExtractor:
     ) -> None:
         """Sync reactions for a single message."""
         for reaction in message.reactions:
-            # Upsert emoji
+            # Handle emoji - can be str (unicode) or Emoji object (custom)
             emoji = reaction.emoji
-            is_custom = emoji.id is not None
+            if isinstance(emoji, str):
+                # Unicode emoji
+                emoji_name = emoji
+                emoji_discord_id = None
+                is_custom = False
+                is_animated = False
+            else:
+                # Custom emoji (PartialEmoji or Emoji object)
+                emoji_name = emoji.name
+                emoji_discord_id = emoji.id
+                is_custom = emoji.id is not None
+                is_animated = getattr(emoji, 'animated', False)
+
             emoji_id = upsert_emoji(
                 session=session,
-                name=emoji.name,
-                discord_id=emoji.id,
+                name=emoji_name,
+                discord_id=emoji_discord_id,
                 is_custom=is_custom,
                 server_id=guild.id if is_custom else None,
-                is_animated=emoji.animated,
+                is_animated=is_animated,
             )
 
             # Get all users who reacted
             async for user in reaction.users():
+                # Convert Asset to string hash if present
+                user_avatar = str(user.avatar.key) if user.avatar else None
+
                 # Ensure user exists
                 upsert_user(
                     session=session,
@@ -399,7 +428,7 @@ class DiscordExtractor:
                     username=user.name,
                     discriminator=user.discriminator,
                     global_name=user.global_name,
-                    avatar_hash=user.avatar,
+                    avatar_hash=user_avatar,
                     is_bot=user.bot,
                     created_at=user.created_at,
                 )
