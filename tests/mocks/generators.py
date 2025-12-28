@@ -9,6 +9,7 @@ Generates data that matches real-world Discord server patterns:
 """
 from __future__ import annotations
 
+import calendar
 import random
 import string
 from datetime import datetime, timedelta
@@ -140,7 +141,8 @@ class DiscordDataGenerator:
         if created_at is None:
             created_at = self._base_time
 
-        timestamp_ms = int(created_at.timestamp() * 1000) - DISCORD_EPOCH
+        # Use calendar.timegm to treat naive datetime as UTC
+        timestamp_ms = int(calendar.timegm(created_at.timetuple()) * 1000) - DISCORD_EPOCH
         self._snowflake_counter += 1
 
         # Construct snowflake: timestamp | worker | process | increment
