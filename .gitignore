@@ -32,7 +32,17 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
-# Secrets
+# Secrets - CRITICAL: Never commit these files
 .env
+.env.*
+.env.local
+.env.development
+.env.production
 *.pem
+*.key
 config.local.py
+secrets.json
+credentials.json
+
+# Clerk temporary files
+.clerk/
