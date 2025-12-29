@@ -1,14 +1,18 @@
 version: '3.8'
 
+# NOTE: Create a .env file in this directory with:
+#   POSTGRES_PASSWORD=your_secure_password_here
+# Or export the variable before running docker-compose
+
 services:
   # Central application database (PostgreSQL)
   postgres:
     image: postgres:16-alpine
     container_name: discord_analytics_db
     environment:
-      POSTGRES_USER: discord_analytics
-      POSTGRES_PASSWORD: dev_password_change_in_prod
-      POSTGRES_DB: discord_analytics
+      POSTGRES_USER: ${POSTGRES_USER:-discord_analytics}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env or environment}
+      POSTGRES_DB: ${POSTGRES_DB:-discord_analytics}
     ports:
       - "5432:5432"
     volumes:
@@ -42,7 +46,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://discord_analytics:dev_password_change_in_prod@postgres:5432/discord_analytics
+      DATABASE_URL: postgresql://${POSTGRES_USER:-discord_analytics}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-discord_analytics}
       REDIS_URL: redis://redis:6379
       DEBUG: "true"
     env_file:
@@ -63,7 +67,7 @@ services:
       dockerfile: Dockerfile
     container_name: discord_analytics_celery
     environment:
-      DATABASE_URL: postgresql://discord_analytics:dev_password_change_in_prod@postgres:5432/discord_analytics
+      DATABASE_URL: postgresql://${POSTGRES_USER:-discord_analytics}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-discord_analytics}
       REDIS_URL: redis://redis:6379
     env_file:
       - ./backend/.env

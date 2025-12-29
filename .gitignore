@@ -35,6 +35,7 @@ Thumbs.db
 # Secrets - CRITICAL: Never commit these files
 .env
 .env.*
+!.env.example
 .env.local
 .env.development
 .env.production
