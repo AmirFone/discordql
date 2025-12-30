@@ -19,7 +19,7 @@ function SimpleLineChart({ data, title, color = "#D4AF37", height = 200 }: {
 
   return (
     <div className="premium-card rounded-xl p-6">
-      <h3 className="font-display font-semibold text-cream-100 mb-4">{title}</h3>
+      <h3 className="font-display font-semibold text-ink-800 mb-4">{title}</h3>
       <div style={{ height }} className="relative">
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
           <defs>
@@ -40,7 +40,7 @@ function SimpleLineChart({ data, title, color = "#D4AF37", height = 200 }: {
             vectorEffect="non-scaling-stroke"
           />
         </svg>
-        <div className="absolute bottom-0 left-0 right-0 flex justify-between text-xs text-cream-500 pt-2">
+        <div className="absolute bottom-0 left-0 right-0 flex justify-between text-xs text-ink-500 pt-2">
           {data.labels.filter((_, i) => i % Math.ceil(data.labels.length / 5) === 0).map((label, i) => (
             <span key={i}>{label}</span>
           ))}
@@ -62,12 +62,12 @@ function SimpleBarChart({ data, title, color = "#D4AF37", height = 200, horizont
   if (horizontal) {
     return (
       <div className="premium-card rounded-xl p-6">
-        <h3 className="font-display font-semibold text-cream-100 mb-4">{title}</h3>
+        <h3 className="font-display font-semibold text-ink-800 mb-4">{title}</h3>
         <div className="space-y-3">
           {data.labels.map((label, i) => (
             <div key={i} className="flex items-center gap-3">
-              <span className="text-cream-400 text-sm w-24 truncate">{label}</span>
-              <div className="flex-1 h-6 bg-obsidian-700 rounded-full overflow-hidden">
+              <span className="text-ink-600 text-sm w-24 truncate">{label}</span>
+              <div className="flex-1 h-6 bg-surface-200 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-500"
                   style={{
@@ -76,7 +76,7 @@ function SimpleBarChart({ data, title, color = "#D4AF37", height = 200, horizont
                   }}
                 />
               </div>
-              <span className="text-cream-300 text-sm w-16 text-right">{data.values[i].toLocaleString()}</span>
+              <span className="text-ink-600 text-sm w-16 text-right">{data.values[i].toLocaleString()}</span>
             </div>
           ))}
         </div>
@@ -86,7 +86,7 @@ function SimpleBarChart({ data, title, color = "#D4AF37", height = 200, horizont
 
   return (
     <div className="premium-card rounded-xl p-6">
-      <h3 className="font-display font-semibold text-cream-100 mb-4">{title}</h3>
+      <h3 className="font-display font-semibold text-ink-800 mb-4">{title}</h3>
       <div style={{ height }} className="flex items-end gap-1">
         {data.values.map((value, i) => (
           <div key={i} className="flex-1 flex flex-col items-center">
@@ -102,7 +102,7 @@ function SimpleBarChart({ data, title, color = "#D4AF37", height = 200, horizont
           </div>
         ))}
       </div>
-      <div className="flex justify-between text-xs text-cream-500 mt-2">
+      <div className="flex justify-between text-xs text-ink-500 mt-2">
         {data.labels.filter((_, i) => i % Math.ceil(data.labels.length / 6) === 0).map((label, i) => (
           <span key={i}>{label}</span>
         ))}
@@ -140,7 +140,7 @@ function SimpleDonutChart({ data, title, size = 180 }: {
 
   return (
     <div className="premium-card rounded-xl p-6">
-      <h3 className="font-display font-semibold text-cream-100 mb-4">{title}</h3>
+      <h3 className="font-display font-semibold text-ink-800 mb-4">{title}</h3>
       <div className="flex items-center gap-6">
         <svg width={size} height={size} viewBox="0 0 100 100">
           {segments.map((seg, i) => (
@@ -164,8 +164,8 @@ function SimpleDonutChart({ data, title, size = 180 }: {
           {segments.slice(0, 5).map((seg, i) => (
             <div key={i} className="flex items-center gap-2 text-sm">
               <span className="w-3 h-3 rounded-full" style={{ backgroundColor: seg.color }} />
-              <span className="text-cream-400 truncate flex-1">{seg.label}</span>
-              <span className="text-cream-300">{(seg.percentage * 100).toFixed(1)}%</span>
+              <span className="text-ink-600 truncate flex-1">{seg.label}</span>
+              <span className="text-ink-600">{(seg.percentage * 100).toFixed(1)}%</span>
             </div>
           ))}
         </div>
@@ -184,7 +184,7 @@ function StatCard({ title, value, change, icon, suffix = "" }: {
   return (
     <div className="premium-card rounded-xl p-6">
       <div className="flex items-center justify-between mb-4">
-        <div className="w-10 h-10 rounded-xl bg-gold-400/10 border border-gold-400/20 flex items-center justify-center text-gold-400">
+        <div className="w-10 h-10 rounded-xl bg-gold-400/10 border border-gold-400/20 flex items-center justify-center text-gold-600">
           {icon}
         </div>
         {change !== undefined && (
@@ -198,12 +198,12 @@ function StatCard({ title, value, change, icon, suffix = "" }: {
         )}
       </div>
       <div>
-        <span className="font-display text-3xl font-bold text-cream-100">
+        <span className="font-display text-3xl font-bold text-ink-800">
           {typeof value === "number" ? value.toLocaleString() : value}
         </span>
-        {suffix && <span className="text-cream-500 text-sm ml-1">{suffix}</span>}
+        {suffix && <span className="text-ink-500 text-sm ml-1">{suffix}</span>}
       </div>
-      <p className="text-cream-500 text-sm mt-1">{title}</p>
+      <p className="text-ink-500 text-sm mt-1">{title}</p>
     </div>
   );
 }
@@ -249,13 +249,13 @@ export default function AnalyticsPage() {
   if (error || !data) {
     return (
       <div className="text-center py-12">
-        <div className="w-16 h-16 rounded-2xl bg-obsidian-800 border border-obsidian-700 flex items-center justify-center mx-auto mb-4">
-          <svg className="w-8 h-8 text-cream-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="w-16 h-16 rounded-2xl bg-surface-100 border border-surface-400 flex items-center justify-center mx-auto mb-4">
+          <svg className="w-8 h-8 text-ink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </svg>
         </div>
-        <p className="text-cream-400 mb-2">No Analytics Data Available</p>
-        <p className="text-cream-500 text-sm mb-4">{error || "Extract Discord data first to see analytics."}</p>
+        <p className="text-ink-600 mb-2">No Analytics Data Available</p>
+        <p className="text-ink-500 text-sm mb-4">{error || "Extract Discord data first to see analytics."}</p>
         <a href="/dashboard/bot" className="btn-gold px-6 py-2.5 rounded-lg inline-block">
           Go to Bot Config
         </a>
@@ -270,8 +270,8 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-3xl font-bold text-cream-100">Analytics</h1>
-          <p className="text-cream-500 mt-1">Real insights from your Discord server data</p>
+          <h1 className="font-display text-3xl font-bold text-ink-800">Analytics</h1>
+          <p className="text-ink-500 mt-1">Real insights from your Discord server data</p>
         </div>
         <div className="flex items-center gap-2">
           {([7, 30, 90] as const).map((range) => (
@@ -280,8 +280,8 @@ export default function AnalyticsPage() {
               onClick={() => setTimeRange(range)}
               className={`px-4 py-2 rounded-lg text-sm transition-colors ${
                 timeRange === range
-                  ? "bg-gold-400/20 text-gold-400 border border-gold-400/30"
-                  : "bg-obsidian-800 text-cream-400 border border-obsidian-700 hover:border-obsidian-600"
+                  ? "bg-gold-400/20 text-gold-600 border border-gold-400/30"
+                  : "bg-surface-100 text-ink-600 border border-surface-400 hover:border-obsidian-600"
               }`}
             >
               {range} Days
@@ -411,23 +411,23 @@ export default function AnalyticsPage() {
 
       {/* Content Metrics */}
       <div className="premium-card rounded-xl p-6">
-        <h3 className="font-display font-semibold text-cream-100 mb-4">Content Analysis</h3>
+        <h3 className="font-display font-semibold text-ink-800 mb-4">Content Analysis</h3>
         <div className="grid md:grid-cols-4 gap-6">
-          <div className="text-center p-4 bg-obsidian-900/50 rounded-lg border border-obsidian-700">
-            <p className="text-3xl font-bold text-gold-400">{data.content_metrics.total_words.toLocaleString()}</p>
-            <p className="text-cream-500 text-sm mt-1">Total Words</p>
+          <div className="text-center p-4 bg-base-50/50 rounded-lg border border-surface-400">
+            <p className="text-3xl font-bold text-gold-600">{data.content_metrics.total_words.toLocaleString()}</p>
+            <p className="text-ink-500 text-sm mt-1">Total Words</p>
           </div>
-          <div className="text-center p-4 bg-obsidian-900/50 rounded-lg border border-obsidian-700">
-            <p className="text-3xl font-bold text-gold-400">{data.content_metrics.avg_words_per_message.toFixed(1)}</p>
-            <p className="text-cream-500 text-sm mt-1">Avg Words/Message</p>
+          <div className="text-center p-4 bg-base-50/50 rounded-lg border border-surface-400">
+            <p className="text-3xl font-bold text-gold-600">{data.content_metrics.avg_words_per_message.toFixed(1)}</p>
+            <p className="text-ink-500 text-sm mt-1">Avg Words/Message</p>
           </div>
-          <div className="text-center p-4 bg-obsidian-900/50 rounded-lg border border-obsidian-700">
-            <p className="text-3xl font-bold text-gold-400">{data.content_metrics.messages_with_attachments.toLocaleString()}</p>
-            <p className="text-cream-500 text-sm mt-1">With Attachments</p>
+          <div className="text-center p-4 bg-base-50/50 rounded-lg border border-surface-400">
+            <p className="text-3xl font-bold text-gold-600">{data.content_metrics.messages_with_attachments.toLocaleString()}</p>
+            <p className="text-ink-500 text-sm mt-1">With Attachments</p>
           </div>
-          <div className="text-center p-4 bg-obsidian-900/50 rounded-lg border border-obsidian-700">
-            <p className="text-3xl font-bold text-gold-400">{data.content_metrics.pinned_messages}</p>
-            <p className="text-cream-500 text-sm mt-1">Pinned Messages</p>
+          <div className="text-center p-4 bg-base-50/50 rounded-lg border border-surface-400">
+            <p className="text-3xl font-bold text-gold-600">{data.content_metrics.pinned_messages}</p>
+            <p className="text-ink-500 text-sm mt-1">Pinned Messages</p>
           </div>
         </div>
       </div>
@@ -435,46 +435,46 @@ export default function AnalyticsPage() {
       {/* Bot vs Human */}
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="premium-card rounded-xl p-6">
-          <h3 className="font-display font-semibold text-cream-100 mb-4">Human vs Bot Activity</h3>
+          <h3 className="font-display font-semibold text-ink-800 mb-4">Human vs Bot Activity</h3>
           <div className="flex items-center gap-8">
             <div className="flex-1">
               <div className="flex justify-between mb-2">
-                <span className="text-cream-400">Human</span>
-                <span className="text-cream-300">{data.bot_vs_human.human_percentage}%</span>
+                <span className="text-ink-600">Human</span>
+                <span className="text-ink-600">{data.bot_vs_human.human_percentage}%</span>
               </div>
-              <div className="h-4 bg-obsidian-700 rounded-full overflow-hidden">
+              <div className="h-4 bg-surface-200 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full"
                   style={{ width: `${data.bot_vs_human.human_percentage}%` }}
                 />
               </div>
-              <p className="text-cream-500 text-sm mt-1">{data.bot_vs_human.human_messages.toLocaleString()} messages</p>
+              <p className="text-ink-500 text-sm mt-1">{data.bot_vs_human.human_messages.toLocaleString()} messages</p>
             </div>
             <div className="flex-1">
               <div className="flex justify-between mb-2">
-                <span className="text-cream-400">Bot</span>
-                <span className="text-cream-300">{data.bot_vs_human.bot_percentage}%</span>
+                <span className="text-ink-600">Bot</span>
+                <span className="text-ink-600">{data.bot_vs_human.bot_percentage}%</span>
               </div>
-              <div className="h-4 bg-obsidian-700 rounded-full overflow-hidden">
+              <div className="h-4 bg-surface-200 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full"
                   style={{ width: `${data.bot_vs_human.bot_percentage}%` }}
                 />
               </div>
-              <p className="text-cream-500 text-sm mt-1">{data.bot_vs_human.bot_messages.toLocaleString()} messages</p>
+              <p className="text-ink-500 text-sm mt-1">{data.bot_vs_human.bot_messages.toLocaleString()} messages</p>
             </div>
           </div>
         </div>
 
         {/* Channel Growth */}
         <div className="premium-card rounded-xl p-6">
-          <h3 className="font-display font-semibold text-cream-100 mb-4">Channel Growth</h3>
+          <h3 className="font-display font-semibold text-ink-800 mb-4">Channel Growth</h3>
           <div className="space-y-3">
             {data.channel_growth.slice(0, 5).map((ch, i) => (
               <div key={i} className="flex items-center justify-between">
-                <span className="text-cream-400">#{ch.channel_name}</span>
+                <span className="text-ink-600">#{ch.channel_name}</span>
                 <div className="flex items-center gap-3">
-                  <span className="text-cream-500 text-sm">
+                  <span className="text-ink-500 text-sm">
                     {ch.previous_period} → {ch.current_period}
                   </span>
                   <span className={`px-2 py-0.5 rounded text-xs ${
@@ -494,11 +494,11 @@ export default function AnalyticsPage() {
       {/* User Interactions */}
       {data.user_interactions.length > 0 && (
         <div className="premium-card rounded-xl p-6">
-          <h3 className="font-display font-semibold text-cream-100 mb-4">Top User Interactions</h3>
+          <h3 className="font-display font-semibold text-ink-800 mb-4">Top User Interactions</h3>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="text-left text-cream-500 text-sm border-b border-obsidian-700">
+                <tr className="text-left text-ink-500 text-sm border-b border-surface-400">
                   <th className="pb-3 font-medium">From</th>
                   <th className="pb-3 font-medium">To</th>
                   <th className="pb-3 font-medium text-right">Mentions</th>
@@ -508,12 +508,12 @@ export default function AnalyticsPage() {
               </thead>
               <tbody>
                 {data.user_interactions.slice(0, 10).map((interaction, i) => (
-                  <tr key={i} className="border-b border-obsidian-800">
-                    <td className="py-3 text-cream-300">{interaction.from_user}</td>
-                    <td className="py-3 text-cream-300">{interaction.to_user}</td>
-                    <td className="py-3 text-cream-400 text-right">{interaction.mention_count}</td>
-                    <td className="py-3 text-cream-400 text-right">{interaction.reply_count}</td>
-                    <td className="py-3 text-gold-400 text-right font-medium">
+                  <tr key={i} className="border-b border-surface-400">
+                    <td className="py-3 text-ink-600">{interaction.from_user}</td>
+                    <td className="py-3 text-ink-600">{interaction.to_user}</td>
+                    <td className="py-3 text-ink-600 text-right">{interaction.mention_count}</td>
+                    <td className="py-3 text-ink-600 text-right">{interaction.reply_count}</td>
+                    <td className="py-3 text-gold-600 text-right font-medium">
                       {interaction.mention_count + interaction.reply_count}
                     </td>
                   </tr>
@@ -526,34 +526,34 @@ export default function AnalyticsPage() {
 
       {/* Quick Insights */}
       <div className="premium-card rounded-xl p-6">
-        <h3 className="font-display font-semibold text-cream-100 mb-4 flex items-center gap-2">
-          <svg className="w-5 h-5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <h3 className="font-display font-semibold text-ink-800 mb-4 flex items-center gap-2">
+          <svg className="w-5 h-5 text-gold-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
           </svg>
           Quick Insights
         </h3>
         <div className="grid md:grid-cols-4 gap-4">
-          <div className="p-4 rounded-lg bg-obsidian-900/50 border border-obsidian-700">
-            <p className="text-cream-500 text-sm mb-1">Peak Hour</p>
-            <p className="text-cream-100 font-medium">
+          <div className="p-4 rounded-lg bg-base-50/50 border border-surface-400">
+            <p className="text-ink-500 text-sm mb-1">Peak Hour</p>
+            <p className="text-ink-800 font-medium">
               {data.hourly_activity.reduce((max, h) => h.message_count > max.message_count ? h : max, data.hourly_activity[0]).hour}:00
             </p>
           </div>
-          <div className="p-4 rounded-lg bg-obsidian-900/50 border border-obsidian-700">
-            <p className="text-cream-500 text-sm mb-1">Busiest Day</p>
-            <p className="text-cream-100 font-medium">
+          <div className="p-4 rounded-lg bg-base-50/50 border border-surface-400">
+            <p className="text-ink-500 text-sm mb-1">Busiest Day</p>
+            <p className="text-ink-800 font-medium">
               {data.day_of_week_activity.reduce((max, d) => d.message_count > max.message_count ? d : max, data.day_of_week_activity[0]).day_name}
             </p>
           </div>
-          <div className="p-4 rounded-lg bg-obsidian-900/50 border border-obsidian-700">
-            <p className="text-cream-500 text-sm mb-1">Most Active Channel</p>
-            <p className="text-cream-100 font-medium">
+          <div className="p-4 rounded-lg bg-base-50/50 border border-surface-400">
+            <p className="text-ink-500 text-sm mb-1">Most Active Channel</p>
+            <p className="text-ink-800 font-medium">
               #{data.top_channels[0]?.channel_name || "N/A"}
             </p>
           </div>
-          <div className="p-4 rounded-lg bg-obsidian-900/50 border border-obsidian-700">
-            <p className="text-cream-500 text-sm mb-1">Top Contributor</p>
-            <p className="text-cream-100 font-medium">
+          <div className="p-4 rounded-lg bg-base-50/50 border border-surface-400">
+            <p className="text-ink-500 text-sm mb-1">Top Contributor</p>
+            <p className="text-ink-800 font-medium">
               {data.top_users[0]?.username || "N/A"}
             </p>
           </div>

@@ -30,7 +30,7 @@ function StatusIndicator({ status }: { status: ExtractionJobResponse["status"] }
   return (
     <div className="flex items-center gap-2">
       <span className={`w-2.5 h-2.5 rounded-full ${config.color} ring-4 ${config.ringColor} ${config.pulse ? "animate-pulse" : ""}`} />
-      <span className="text-sm font-medium text-cream-200">{config.label}</span>
+      <span className="text-sm font-medium text-ink-700">{config.label}</span>
     </div>
   );
 }
@@ -201,8 +201,8 @@ export default function BotConfigPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="font-display text-3xl font-bold text-cream-100">Bot Configuration</h1>
-        <p className="text-cream-500 mt-1">Connect and manage your Discord bot</p>
+        <h1 className="font-display text-3xl font-bold text-ink-800">Bot Configuration</h1>
+        <p className="text-ink-500 mt-1">Connect and manage your Discord bot</p>
       </div>
 
       {/* Messages */}
@@ -229,20 +229,20 @@ export default function BotConfigPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-gold-400/20 flex items-center justify-center">
-                <svg className="w-6 h-6 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 text-gold-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                  <span className="font-semibold text-gold-300">Bot Connected</span>
+                  <span className="font-semibold text-gold-600">Bot Connected</span>
                 </div>
-                <p className="text-cream-300 mt-0.5">
-                  {botStatus.guild_name} <span className="text-cream-500">({botStatus.guild_id})</span>
+                <p className="text-ink-600 mt-0.5">
+                  {botStatus.guild_name} <span className="text-ink-500">({botStatus.guild_id})</span>
                 </p>
                 {botStatus.last_sync_at && (
-                  <p className="text-cream-500 text-sm mt-1">
+                  <p className="text-ink-500 text-sm mt-1">
                     Last synced: {new Date(botStatus.last_sync_at).toLocaleString()}
                   </p>
                 )}
@@ -261,17 +261,17 @@ export default function BotConfigPage() {
       {/* Connection Form */}
       <div className="premium-card p-6 rounded-2xl">
         <div className="mb-6">
-          <h2 className="font-display text-xl font-semibold text-cream-100">
+          <h2 className="font-display text-xl font-semibold text-ink-800">
             {botStatus?.connected ? "Update Bot Connection" : "Connect Your Discord Bot"}
           </h2>
-          <p className="text-cream-500 text-sm mt-1">
+          <p className="text-ink-500 text-sm mt-1">
             Enter your Discord bot token to connect and extract server data. Your token is encrypted before storage.
           </p>
         </div>
 
         <form onSubmit={handleConnect} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-cream-300 mb-2">Bot Token</label>
+            <label className="block text-sm font-medium text-ink-600 mb-2">Bot Token</label>
             <input
               type="password"
               value={token}
@@ -280,14 +280,14 @@ export default function BotConfigPage() {
               className="input-dark w-full px-4 py-3 rounded-xl"
               required
             />
-            <p className="text-cream-500 text-xs mt-2">
-              Get this from the <a href="https://discord.com/developers/applications" target="_blank" rel="noopener noreferrer" className="text-gold-400 hover:text-gold-300 underline">Discord Developer Portal</a>
+            <p className="text-ink-500 text-xs mt-2">
+              Get this from the <a href="https://discord.com/developers/applications" target="_blank" rel="noopener noreferrer" className="text-gold-600 hover:text-gold-600 underline">Discord Developer Portal</a>
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-cream-300 mb-2">Server (Guild) ID</label>
+              <label className="block text-sm font-medium text-ink-600 mb-2">Server (Guild) ID</label>
               <input
                 type="text"
                 value={guildId}
@@ -298,7 +298,7 @@ export default function BotConfigPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-cream-300 mb-2">Server Name</label>
+              <label className="block text-sm font-medium text-ink-600 mb-2">Server Name</label>
               <input
                 type="text"
                 value={guildName}
@@ -333,13 +333,13 @@ export default function BotConfigPage() {
       {botStatus?.connected && (
         <div className="premium-card p-6 rounded-2xl">
           <div className="mb-6">
-            <h2 className="font-display text-xl font-semibold text-cream-100">Start Extraction</h2>
-            <p className="text-cream-500 text-sm mt-1">Choose how far back to extract message history.</p>
+            <h2 className="font-display text-xl font-semibold text-ink-800">Start Extraction</h2>
+            <p className="text-ink-500 text-sm mt-1">Choose how far back to extract message history.</p>
           </div>
 
           <div className="flex flex-wrap items-end gap-4">
             <div className="flex-1 min-w-48">
-              <label className="block text-sm font-medium text-cream-300 mb-2">Sync History</label>
+              <label className="block text-sm font-medium text-ink-600 mb-2">Sync History</label>
               <select
                 value={syncDays}
                 onChange={(e) => setSyncDays(parseInt(e.target.value))}
@@ -373,7 +373,7 @@ export default function BotConfigPage() {
             </button>
           </div>
 
-          <p className="text-cream-500 text-xs mt-4">
+          <p className="text-ink-500 text-xs mt-4">
             Free tier: up to 30 days • Pro: up to 365 days • Enterprise: unlimited
           </p>
         </div>
@@ -382,7 +382,7 @@ export default function BotConfigPage() {
       {/* Extraction History */}
       {botStatus?.connected && extractionJobs.length > 0 && (
         <div className="premium-card p-6 rounded-2xl">
-          <h2 className="font-display text-xl font-semibold text-cream-100 mb-6">Extraction History</h2>
+          <h2 className="font-display text-xl font-semibold text-ink-800 mb-6">Extraction History</h2>
           <div className="space-y-4">
             {extractionJobs.map((job) => (
               <div
@@ -394,27 +394,27 @@ export default function BotConfigPage() {
                     ? "bg-green-500/5 border-green-500/20"
                     : job.status === "failed"
                     ? "bg-red-500/5 border-red-500/20"
-                    : "bg-obsidian-700/50 border-obsidian-600"
+                    : "bg-surface-200/50 border-surface-400"
                 }`}
               >
                 <div className="flex items-center justify-between mb-3">
                   <StatusIndicator status={job.status} />
-                  <span className="text-sm text-cream-500">{job.sync_days}-day extraction</span>
+                  <span className="text-sm text-ink-500">{job.sync_days}-day extraction</span>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div>
-                    <span className="text-cream-500">Messages</span>
-                    <p className="font-semibold text-cream-100">{job.messages_extracted.toLocaleString()}</p>
+                    <span className="text-ink-500">Messages</span>
+                    <p className="font-semibold text-ink-800">{job.messages_extracted.toLocaleString()}</p>
                   </div>
                   <div>
-                    <span className="text-cream-500">Started</span>
-                    <p className="text-cream-200">{timeAgo(job.started_at)}</p>
+                    <span className="text-ink-500">Started</span>
+                    <p className="text-ink-700">{timeAgo(job.started_at)}</p>
                   </div>
                   {job.completed_at && (
                     <div>
-                      <span className="text-cream-500">Completed</span>
-                      <p className="text-cream-200">{timeAgo(job.completed_at)}</p>
+                      <span className="text-ink-500">Completed</span>
+                      <p className="text-ink-700">{timeAgo(job.completed_at)}</p>
                     </div>
                   )}
                   {job.error_message && (
@@ -426,7 +426,7 @@ export default function BotConfigPage() {
                 </div>
 
                 {(job.status === "pending" || job.status === "running") && (
-                  <div className="mt-4 pt-4 border-t border-obsidian-600">
+                  <div className="mt-4 pt-4 border-t border-surface-400">
                     <button
                       onClick={() => handleCancelExtraction(job.id)}
                       disabled={isCancelling === job.id}
@@ -444,7 +444,7 @@ export default function BotConfigPage() {
 
       {/* Help Section */}
       <div className="premium-card p-6 rounded-2xl">
-        <h2 className="font-display text-xl font-semibold text-cream-100 mb-4">Getting Started</h2>
+        <h2 className="font-display text-xl font-semibold text-ink-800 mb-4">Getting Started</h2>
         <div className="space-y-4">
           {[
             { step: 1, text: "Go to the Discord Developer Portal", link: "https://discord.com/developers/applications" },
@@ -456,11 +456,11 @@ export default function BotConfigPage() {
           ].map((item) => (
             <div key={item.step} className="flex items-start gap-4">
               <div className="w-8 h-8 rounded-lg bg-gold-400/10 border border-gold-400/20 flex items-center justify-center flex-shrink-0">
-                <span className="text-gold-400 font-semibold text-sm">{item.step}</span>
+                <span className="text-gold-600 font-semibold text-sm">{item.step}</span>
               </div>
-              <p className="text-cream-300 pt-1.5">
+              <p className="text-ink-600 pt-1.5">
                 {item.link ? (
-                  <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-gold-400 hover:text-gold-300 underline">
+                  <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-gold-600 hover:text-gold-600 underline">
                     {item.text}
                   </a>
                 ) : (

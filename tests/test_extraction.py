@@ -217,8 +217,9 @@ class TestDiscordExtractor:
         # Run sync twice
         stats1 = await extractor.sync_server(small_mock_guild.id)
 
-        # Reset stats
-        extractor.stats = {k: 0 for k in extractor.stats}
+        # Reset stats using the ExtractionStats dataclass
+        from src.extractor import ExtractionStats
+        extractor.stats = ExtractionStats()
         stats2 = await extractor.sync_server(small_mock_guild.id)
 
         # Check database counts are same (not doubled)

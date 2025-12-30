@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     app_name: str = "Discord Analytics SaaS"
     debug: bool = False
     api_prefix: str = "/api"
+    frontend_url: str = "http://localhost:3000"  # Frontend URL for redirects
 
     # Clerk Authentication
     clerk_secret_key: str = ""

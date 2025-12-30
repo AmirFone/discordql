@@ -7,6 +7,7 @@ Works identically with real discord.py client or MockDiscordClient.
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Protocol, Optional, AsyncIterator, List, Any, TYPE_CHECKING
 
@@ -133,6 +134,38 @@ class ClientProtocol(Protocol):
 
 
 # =============================================================================
+# HELPER FUNCTIONS AND DATA CLASSES
+# =============================================================================
+
+
+def extract_asset_hash(asset: Optional[Any]) -> Optional[str]:
+    """Extract hash string from Discord Asset object (avatar, icon, etc.)."""
+    return str(asset.key) if asset else None
+
+
+@dataclass
+class ExtractionStats:
+    """Statistics from an extraction run."""
+    servers: int = 0
+    users: int = 0
+    channels: int = 0
+    messages: int = 0
+    reactions: int = 0
+    mentions: int = 0
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for backward compatibility."""
+        return {
+            "servers": self.servers,
+            "users": self.users,
+            "channels": self.channels,
+            "messages": self.messages,
+            "reactions": self.reactions,
+            "mentions": self.mentions,
+        }
+
+
+# =============================================================================
 # EXTRACTOR CLASS
 # =============================================================================
 
@@ -143,6 +176,9 @@ class DiscordExtractor:
 
     Works with either real discord.py client or MockDiscordClient.
     """
+
+    # Number of messages before committing transaction
+    COMMIT_INTERVAL = 100
 
     def __init__(
         self,
@@ -166,14 +202,7 @@ class DiscordExtractor:
         self.fetch_reactions = fetch_reactions
 
         # Statistics
-        self.stats = {
-            "servers": 0,
-            "users": 0,
-            "channels": 0,
-            "messages": 0,
-            "reactions": 0,
-            "mentions": 0,
-        }
+        self.stats = ExtractionStats()
 
     async def sync_server(self, guild_id: int) -> dict:
         """
@@ -204,8 +233,8 @@ class DiscordExtractor:
             # 3. Sync channels and messages
             await self._sync_channels(session, guild)
 
-        logger.info(f"Sync complete. Stats: {self.stats}")
-        return self.stats
+        logger.info(f"Sync complete. Stats: {self.stats.to_dict()}")
+        return self.stats.to_dict()
 
     async def _sync_server_metadata(
         self,
@@ -213,19 +242,16 @@ class DiscordExtractor:
         guild: GuildProtocol,
     ) -> None:
         """Sync server metadata."""
-        # Convert Asset to string hash if present
-        icon_hash = str(guild.icon.key) if guild.icon else None
-
         upsert_server(
             session=session,
             server_id=guild.id,
             name=guild.name,
             owner_id=guild.owner_id,
-            icon_hash=icon_hash,
+            icon_hash=extract_asset_hash(guild.icon),
             member_count=guild.member_count,
             created_at=guild.created_at,
         )
-        self.stats["servers"] += 1
+        self.stats.servers += 1
         logger.debug(f"Synced server: {guild.name}")
 
     async def _sync_members(
@@ -236,9 +262,6 @@ class DiscordExtractor:
         """Sync all guild members."""
         member_count = 0
         async for member in guild.fetch_members():
-            # Convert Asset to string hash if present
-            avatar_hash = str(member.avatar.key) if member.avatar else None
-
             # Upsert user first
             upsert_user(
                 session=session,
@@ -246,7 +269,7 @@ class DiscordExtractor:
                 username=member.name,
                 discriminator=member.discriminator,
                 global_name=member.global_name,
-                avatar_hash=avatar_hash,
+                avatar_hash=extract_asset_hash(member.avatar),
                 is_bot=member.bot,
                 created_at=member.created_at,
             )
@@ -261,7 +284,7 @@ class DiscordExtractor:
             )
             member_count += 1
 
-        self.stats["users"] += member_count
+        self.stats.users += member_count
         logger.debug(f"Synced {member_count} members")
 
     async def _sync_channels(
@@ -285,7 +308,7 @@ class DiscordExtractor:
                 is_nsfw=channel.nsfw,
                 created_at=channel.created_at,
             )
-            self.stats["channels"] += 1
+            self.stats.channels += 1
 
             # Sync messages
             await self._sync_channel_messages(session, guild, channel, cutoff_date)
@@ -301,9 +324,6 @@ class DiscordExtractor:
         message_count = 0
 
         async for message in channel.history(limit=None, after=after):
-            # Convert Asset to string hash if present
-            author_avatar = str(message.author.avatar.key) if message.author.avatar else None
-
             # Ensure author exists
             upsert_user(
                 session=session,
@@ -311,7 +331,7 @@ class DiscordExtractor:
                 username=message.author.name,
                 discriminator=message.author.discriminator,
                 global_name=message.author.global_name,
-                avatar_hash=author_avatar,
+                avatar_hash=extract_asset_hash(message.author.avatar),
                 is_bot=message.author.bot,
                 created_at=message.author.created_at,
             )
@@ -351,9 +371,6 @@ class DiscordExtractor:
 
             # Process mentions
             for mentioned_user in message.mentions:
-                # Convert Asset to string hash if present
-                mentioned_avatar = str(mentioned_user.avatar.key) if mentioned_user.avatar else None
-
                 # Ensure mentioned user exists
                 upsert_user(
                     session=session,
@@ -361,7 +378,7 @@ class DiscordExtractor:
                     username=mentioned_user.name,
                     discriminator=mentioned_user.discriminator,
                     global_name=mentioned_user.global_name,
-                    avatar_hash=mentioned_avatar,
+                    avatar_hash=extract_asset_hash(mentioned_user.avatar),
                     is_bot=mentioned_user.bot,
                     created_at=mentioned_user.created_at,
                 )
@@ -370,18 +387,18 @@ class DiscordExtractor:
                     message_id=message.id,
                     mentioned_user_id=mentioned_user.id,
                 )
-                self.stats["mentions"] += 1
+                self.stats.mentions += 1
 
             # Process reactions
             if self.fetch_reactions and message.reactions:
                 await self._sync_message_reactions(session, guild, message)
 
             # Commit periodically to avoid large transactions
-            if message_count % 100 == 0:
+            if message_count % self.COMMIT_INTERVAL == 0:
                 session.commit()
                 logger.debug(f"Synced {message_count} messages in #{channel.name}")
 
-        self.stats["messages"] += message_count
+        self.stats.messages += message_count
         logger.info(f"Synced {message_count} messages from #{channel.name}")
 
     async def _sync_message_reactions(
@@ -418,9 +435,6 @@ class DiscordExtractor:
 
             # Get all users who reacted
             async for user in reaction.users():
-                # Convert Asset to string hash if present
-                user_avatar = str(user.avatar.key) if user.avatar else None
-
                 # Ensure user exists
                 upsert_user(
                     session=session,
@@ -428,7 +442,7 @@ class DiscordExtractor:
                     username=user.name,
                     discriminator=user.discriminator,
                     global_name=user.global_name,
-                    avatar_hash=user_avatar,
+                    avatar_hash=extract_asset_hash(user.avatar),
                     is_bot=user.bot,
                     created_at=user.created_at,
                 )
@@ -439,7 +453,7 @@ class DiscordExtractor:
                     emoji_id=emoji_id,
                     user_id=user.id,
                 )
-                self.stats["reactions"] += 1
+                self.stats.reactions += 1
 
 
 async def run_extraction(

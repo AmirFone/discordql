@@ -178,7 +178,6 @@ export interface ExampleQueriesResponse {
 
 export interface SubscriptionResponse {
   tier: "free" | "pro" | "team";
-  stripe_customer_id: string | null;
   current_period_end: string | null;
   storage_used_bytes: number;
   storage_limit_bytes: number;

@@ -134,8 +134,8 @@ async def create_checkout(
             payment_method_types=["card"],
             line_items=[{"price": price_id, "quantity": 1}],
             mode="subscription",
-            success_url="http://localhost:3000/dashboard?upgraded=true",
-            cancel_url="http://localhost:3000/dashboard/settings",
+            success_url=f"{settings.frontend_url}/dashboard?upgraded=true",
+            cancel_url=f"{settings.frontend_url}/dashboard/settings",
             metadata={"clerk_id": user.clerk_id, "plan": plan},
         )
         return CheckoutResponse(checkout_url=checkout_session.url)
@@ -169,7 +169,7 @@ async def create_portal_session(user: User = Depends(get_current_user)):
     try:
         portal_session = stripe.billing_portal.Session.create(
             customer=customer_id,
-            return_url="http://localhost:3000/dashboard/settings",
+            return_url=f"{settings.frontend_url}/dashboard/settings",
         )
         return {"portal_url": portal_session.url}
     except stripe.error.StripeError as e:

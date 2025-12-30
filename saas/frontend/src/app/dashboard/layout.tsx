@@ -61,14 +61,14 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen bg-obsidian-900 text-cream-100 flex">
+    <div className="min-h-screen bg-base-50 text-ink-800 flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-obsidian-800 border-r border-obsidian-700 flex flex-col fixed h-screen">
+      <aside className="w-64 bg-surface-50 border-r border-surface-400 flex flex-col fixed h-screen">
         {/* Logo */}
-        <div className="p-6 border-b border-obsidian-700">
+        <div className="p-6 border-b border-surface-400">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="w-9 h-9 rounded-lg bg-gold-gradient flex items-center justify-center shadow-gold-sm">
-              <svg className="w-5 h-5 text-obsidian-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </div>
@@ -89,11 +89,11 @@ export default function DashboardLayout({
                     href={item.href}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                       isActive
-                        ? "bg-gold-400/10 text-gold-400 border border-gold-400/20"
-                        : "text-cream-400 hover:bg-obsidian-700 hover:text-cream-100"
+                        ? "bg-gold-400/15 text-gold-600 border border-gold-400/30"
+                        : "text-ink-600 hover:bg-surface-200 hover:text-ink-800"
                     }`}
                   >
-                    <span className={isActive ? "text-gold-400" : "text-cream-500"}>
+                    <span className={isActive ? "text-gold-600" : "text-ink-500"}>
                       {item.icon}
                     </span>
                     <span className="font-medium">{item.label}</span>
@@ -108,8 +108,8 @@ export default function DashboardLayout({
         </nav>
 
         {/* User Section */}
-        <div className="p-4 border-t border-obsidian-700">
-          <div className="flex items-center gap-3 px-2 py-2 rounded-xl bg-obsidian-700/50">
+        <div className="p-4 border-t border-surface-400">
+          <div className="flex items-center gap-3 px-2 py-2 rounded-xl bg-surface-100">
             <UserButton
               afterSignOutUrl="/"
               appearance={{
@@ -119,8 +119,8 @@ export default function DashboardLayout({
               }}
             />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-cream-200 truncate">Account</p>
-              <p className="text-xs text-cream-500">Manage settings</p>
+              <p className="text-sm font-medium text-ink-700 truncate">Account</p>
+              <p className="text-xs text-ink-500">Manage settings</p>
             </div>
           </div>
         </div>

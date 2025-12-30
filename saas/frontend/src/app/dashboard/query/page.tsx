@@ -93,7 +93,7 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 function getTypeColor(type: string): string {
-  return TYPE_COLORS[type.toLowerCase()] || 'text-cream-500 bg-cream-500/10';
+  return TYPE_COLORS[type.toLowerCase()] || 'text-ink-500 bg-cream-500/10';
 }
 
 // =============================================================================
@@ -229,13 +229,13 @@ function SchemaPanel({
   if (schema.length === 0) {
     return (
       <div className="text-center py-8 px-4">
-        <div className="w-10 h-10 rounded-lg bg-obsidian-700 flex items-center justify-center mx-auto mb-3">
-          <svg className="w-5 h-5 text-cream-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="w-10 h-10 rounded-lg bg-surface-200 flex items-center justify-center mx-auto mb-3">
+          <svg className="w-5 h-5 text-ink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
           </svg>
         </div>
-        <p className="text-cream-400 text-sm font-medium">No Data Yet</p>
-        <p className="text-cream-600 text-xs mt-1">Extract Discord data to see schema</p>
+        <p className="text-ink-600 text-sm font-medium">No Data Yet</p>
+        <p className="text-ink-400 text-xs mt-1">Extract Discord data to see schema</p>
       </div>
     );
   }
@@ -243,9 +243,9 @@ function SchemaPanel({
   return (
     <div className="flex flex-col h-full">
       {/* Search */}
-      <div className="p-3 border-b border-obsidian-700">
+      <div className="p-3 border-b border-surface-400">
         <div className="relative">
-          <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-cream-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
@@ -253,7 +253,7 @@ function SchemaPanel({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search tables..."
-            className="w-full pl-8 pr-3 py-1.5 bg-obsidian-800 border border-obsidian-700 rounded-lg text-xs text-cream-300 placeholder-cream-600 focus:outline-none focus:border-gold-400/50"
+            className="w-full pl-8 pr-3 py-1.5 bg-surface-100 border border-surface-400 rounded-lg text-xs text-ink-600 placeholder-cream-600 focus:outline-none focus:border-gold-400/50"
           />
         </div>
       </div>
@@ -265,28 +265,28 @@ function SchemaPanel({
             {/* Table header */}
             <button
               onClick={() => toggleTable(table.name)}
-              className="w-full flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-obsidian-700/50 transition-colors group"
+              className="w-full flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-surface-200/50 transition-colors group"
             >
               <svg
-                className={`w-3 h-3 text-cream-600 transition-transform ${expandedTables.has(table.name) ? 'rotate-90' : ''}`}
+                className={`w-3 h-3 text-ink-400 transition-transform ${expandedTables.has(table.name) ? 'rotate-90' : ''}`}
                 fill="none" stroke="currentColor" viewBox="0 0 24 24"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-              <svg className="w-4 h-4 text-gold-400/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-gold-600/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
-              <span className="flex-1 text-left text-sm text-cream-200 font-medium truncate">{table.name}</span>
-              <span className="text-[10px] text-cream-500 tabular-nums">{table.row_count.toLocaleString()}</span>
+              <span className="flex-1 text-left text-sm text-ink-700 font-medium truncate">{table.name}</span>
+              <span className="text-[10px] text-ink-500 tabular-nums">{table.row_count.toLocaleString()}</span>
             </button>
 
             {/* Expanded columns */}
             {expandedTables.has(table.name) && (
-              <div className="ml-5 pl-3 border-l border-obsidian-700 mt-1 mb-2">
+              <div className="ml-5 pl-3 border-l border-surface-400 mt-1 mb-2">
                 {/* Quick insert */}
                 <button
                   onClick={() => onInsert(`SELECT * FROM ${table.name} LIMIT 10`)}
-                  className="w-full text-left px-2 py-1.5 text-[11px] text-gold-400/80 hover:text-gold-400 hover:bg-obsidian-700/30 rounded transition-colors mb-1"
+                  className="w-full text-left px-2 py-1.5 text-[11px] text-gold-600/80 hover:text-gold-600 hover:bg-surface-200/30 rounded transition-colors mb-1"
                 >
                   SELECT * FROM {table.name}
                 </button>
@@ -296,9 +296,9 @@ function SchemaPanel({
                   <button
                     key={col.name}
                     onClick={() => onInsert(col.name)}
-                    className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-obsidian-700/30 rounded transition-colors group"
+                    className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-surface-200/30 rounded transition-colors group"
                   >
-                    <span className="text-xs text-cream-400 group-hover:text-cream-200 truncate">{col.name}</span>
+                    <span className="text-xs text-ink-600 group-hover:text-ink-700 truncate">{col.name}</span>
                     <span className={`text-[9px] px-1.5 py-0.5 rounded font-mono ${getTypeColor(col.type)}`}>
                       {col.type.replace('character varying', 'varchar').replace('timestamp with time zone', 'timestamptz').replace('without time zone', '')}
                     </span>
@@ -311,8 +311,8 @@ function SchemaPanel({
       </div>
 
       {/* Stats footer */}
-      <div className="p-3 border-t border-obsidian-700 bg-obsidian-800/30">
-        <div className="flex items-center justify-between text-[10px] text-cream-600">
+      <div className="p-3 border-t border-surface-400 bg-surface-100/30">
+        <div className="flex items-center justify-between text-[10px] text-ink-400">
           <span>{schema.length} tables</span>
           <span>{schema.reduce((sum, t) => sum + t.columns.length, 0)} columns</span>
         </div>
@@ -343,18 +343,18 @@ function ExamplesPanel({
   if (examples.length === 0) return null;
 
   return (
-    <div className="border-t border-obsidian-700 bg-obsidian-800/50 flex-shrink-0">
+    <div className="border-t border-surface-400 bg-surface-100/50 flex-shrink-0">
       {/* Header with category tabs */}
-      <div className="flex items-center gap-2 px-4 py-2 border-b border-obsidian-700/50">
-        <svg className="w-4 h-4 text-gold-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="flex items-center gap-2 px-4 py-2 border-b border-surface-400/50">
+        <svg className="w-4 h-4 text-gold-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
         </svg>
-        <span className="text-xs font-medium text-cream-200 flex-shrink-0">Examples</span>
+        <span className="text-xs font-medium text-ink-700 flex-shrink-0">Examples</span>
         <div className="flex gap-1 overflow-x-auto ml-2">
           <button
             onClick={() => setActiveCategory('all')}
             className={`px-2 py-1 text-[10px] rounded-md whitespace-nowrap transition-colors ${
-              activeCategory === 'all' ? 'bg-gold-400/20 text-gold-400' : 'text-cream-500 hover:text-cream-300'
+              activeCategory === 'all' ? 'bg-gold-400/20 text-gold-600' : 'text-ink-500 hover:text-ink-600'
             }`}
           >
             All
@@ -364,7 +364,7 @@ function ExamplesPanel({
               key={cat}
               onClick={() => setActiveCategory(cat)}
               className={`px-2 py-1 text-[10px] rounded-md whitespace-nowrap transition-colors ${
-                activeCategory === cat ? 'bg-gold-400/20 text-gold-400' : 'text-cream-500 hover:text-cream-300'
+                activeCategory === cat ? 'bg-gold-400/20 text-gold-600' : 'text-ink-500 hover:text-ink-600'
               }`}
             >
               {cat}
@@ -379,17 +379,17 @@ function ExamplesPanel({
           <button
             key={i}
             onClick={() => onSelect(example.sql)}
-            className="flex-shrink-0 w-56 text-left p-3 rounded-lg bg-obsidian-700/50 border border-obsidian-700 hover:border-gold-400/40 hover:bg-obsidian-700 transition-all group"
+            className="flex-shrink-0 w-56 text-left p-3 rounded-lg bg-surface-200/50 border border-surface-400 hover:border-gold-400/40 hover:bg-surface-200 transition-all group"
           >
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-cream-200 font-medium group-hover:text-gold-400 transition-colors truncate">
+              <span className="text-xs text-ink-700 font-medium group-hover:text-gold-600 transition-colors truncate">
                 {example.name}
               </span>
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-obsidian-600 text-cream-500 ml-2 flex-shrink-0">
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-surface-300 text-ink-500 ml-2 flex-shrink-0">
                 {example.category}
               </span>
             </div>
-            <p className="text-[10px] text-cream-600 line-clamp-2 leading-relaxed">{example.description}</p>
+            <p className="text-[10px] text-ink-400 line-clamp-2 leading-relaxed">{example.description}</p>
           </button>
         ))}
       </div>
@@ -511,17 +511,17 @@ export default function QueryPage() {
     <div className="flex h-[calc(100vh-4rem)] -m-8 overflow-hidden">
       {/* Schema Sidebar */}
       {showSchema && (
-        <aside className="w-64 flex-shrink-0 bg-obsidian-800/50 border-r border-obsidian-700 flex flex-col overflow-hidden">
-          <div className="flex items-center justify-between p-3 border-b border-obsidian-700">
+        <aside className="w-64 flex-shrink-0 bg-surface-100/50 border-r border-surface-400 flex flex-col overflow-hidden">
+          <div className="flex items-center justify-between p-3 border-b border-surface-400">
             <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-gold-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
               </svg>
-              <span className="text-sm font-semibold text-cream-100">Schema</span>
+              <span className="text-sm font-semibold text-ink-800">Schema</span>
             </div>
             <button
               onClick={() => setShowSchema(false)}
-              className="p-1 rounded hover:bg-obsidian-700 text-cream-500 hover:text-cream-300 transition-colors"
+              className="p-1 rounded hover:bg-surface-200 text-ink-500 hover:text-ink-600 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -535,12 +535,12 @@ export default function QueryPage() {
       {/* Main Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Toolbar */}
-        <div className="flex items-center justify-between gap-4 px-4 py-2 border-b border-obsidian-700 bg-obsidian-800 flex-shrink-0">
+        <div className="flex items-center justify-between gap-4 px-4 py-2 border-b border-surface-400 bg-surface-100 flex-shrink-0">
           <div className="flex items-center gap-2">
             {!showSchema && (
               <button
                 onClick={() => setShowSchema(true)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-cream-400 hover:text-gold-400 bg-obsidian-700 rounded-lg transition-colors"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-ink-600 hover:text-gold-600 bg-surface-200 rounded-lg transition-colors"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
@@ -548,14 +548,14 @@ export default function QueryPage() {
                 Schema
               </button>
             )}
-            <span className="text-cream-500 text-xs">SQL Editor</span>
+            <span className="text-ink-500 text-xs">SQL Editor</span>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-cream-600 text-[10px] hidden sm:flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-obsidian-700 rounded text-[9px]">Ctrl</kbd>
+            <span className="text-ink-400 text-[10px] hidden sm:flex items-center gap-1">
+              <kbd className="px-1.5 py-0.5 bg-surface-200 rounded text-[9px]">Ctrl</kbd>
               <span>+</span>
-              <kbd className="px-1.5 py-0.5 bg-obsidian-700 rounded text-[9px]">Enter</kbd>
+              <kbd className="px-1.5 py-0.5 bg-surface-200 rounded text-[9px]">Enter</kbd>
             </span>
             <button
               onClick={handleExecute}
@@ -575,7 +575,7 @@ export default function QueryPage() {
         </div>
 
         {/* Editor - White background for distinction */}
-        <div className="h-44 flex-shrink-0 border-b border-obsidian-700 bg-white overflow-hidden">
+        <div className="h-44 flex-shrink-0 border-b border-surface-400 bg-white overflow-hidden">
           <SQLEditor value={sql} onChange={setSql} onExecute={handleExecute} />
         </div>
 
@@ -604,7 +604,7 @@ export default function QueryPage() {
                   }`}>{error.message}</p>
                   {/* Show position indicator */}
                   {error.position !== undefined && (
-                    <p className="text-xs text-cream-500 mt-1">
+                    <p className="text-xs text-ink-500 mt-1">
                       Error at character position {error.position}
                     </p>
                   )}
@@ -627,11 +627,11 @@ export default function QueryPage() {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3 text-xs">
-                  <span className="text-cream-300">
-                    <span className="text-gold-400 font-semibold">{result.row_count.toLocaleString()}</span> rows
-                    {result.truncated && <span className="text-cream-600 ml-1">(truncated)</span>}
+                  <span className="text-ink-600">
+                    <span className="text-gold-600 font-semibold">{result.row_count.toLocaleString()}</span> rows
+                    {result.truncated && <span className="text-ink-400 ml-1">(truncated)</span>}
                   </span>
-                  <span className="text-cream-600">{result.execution_time_ms.toFixed(1)}ms</span>
+                  <span className="text-ink-400">{result.execution_time_ms.toFixed(1)}ms</span>
                 </div>
                 <button
                   onClick={() => {
@@ -647,7 +647,7 @@ export default function QueryPage() {
                     a.download = 'results.csv';
                     a.click();
                   }}
-                  className="flex items-center gap-1.5 px-2.5 py-1 bg-obsidian-700 hover:bg-obsidian-600 text-cream-400 text-[10px] rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 px-2.5 py-1 bg-surface-200 hover:bg-surface-300 text-ink-600 text-[10px] rounded-lg transition-colors"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -656,26 +656,26 @@ export default function QueryPage() {
                 </button>
               </div>
 
-              <div className="rounded-lg border border-obsidian-700 overflow-hidden">
+              <div className="rounded-lg border border-surface-400 overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="bg-obsidian-800">
+                      <tr className="bg-surface-100">
                         {result.columns.map((col, i) => (
-                          <th key={i} className="text-left px-3 py-2 font-medium text-cream-300 whitespace-nowrap border-b border-obsidian-700">
+                          <th key={i} className="text-left px-3 py-2 font-medium text-ink-600 whitespace-nowrap border-b border-surface-400">
                             {col.name}
-                            <span className="ml-1.5 text-[9px] text-cream-600 font-normal">{col.type}</span>
+                            <span className="ml-1.5 text-[9px] text-ink-400 font-normal">{col.type}</span>
                           </th>
                         ))}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-obsidian-800">
                       {result.rows.map((row, i) => (
-                        <tr key={i} className="hover:bg-obsidian-800/30 transition-colors">
+                        <tr key={i} className="hover:bg-surface-100/30 transition-colors">
                           {row.map((cell, j) => (
-                            <td key={j} className="px-3 py-2 text-cream-400 whitespace-nowrap max-w-xs truncate">
+                            <td key={j} className="px-3 py-2 text-ink-600 whitespace-nowrap max-w-xs truncate">
                               {cell === null ? (
-                                <span className="text-cream-600 italic">null</span>
+                                <span className="text-ink-400 italic">null</span>
                               ) : typeof cell === "boolean" ? (
                                 <span className={cell ? "text-emerald-400" : "text-red-400"}>{String(cell)}</span>
                               ) : typeof cell === "object" ? (
@@ -696,13 +696,13 @@ export default function QueryPage() {
 
           {!result && !error && (
             <div className="flex flex-col items-center justify-center h-full text-center">
-              <div className="w-12 h-12 rounded-xl bg-obsidian-800 border border-obsidian-700 flex items-center justify-center mb-3">
-                <svg className="w-6 h-6 text-cream-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-12 h-12 rounded-xl bg-surface-100 border border-surface-400 flex items-center justify-center mb-3">
+                <svg className="w-6 h-6 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
-              <p className="text-cream-400 text-sm font-medium">Ready to query</p>
-              <p className="text-cream-600 text-xs mt-1">Write SQL or pick an example below</p>
+              <p className="text-ink-600 text-sm font-medium">Ready to query</p>
+              <p className="text-ink-400 text-xs mt-1">Write SQL or pick an example below</p>
             </div>
           )}
         </div>

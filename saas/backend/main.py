@@ -129,11 +129,21 @@ host = os.getenv("HOST", "127.0.0.1")
 is_local = host in ("127.0.0.1", "localhost", "0.0.0.0") or settings.debug
 
 if is_local:
-    ALLOWED_ORIGINS.append("http://localhost:3000")  # Next.js dev
-    logger.info("CORS: Allowing http://localhost:3000 for local development")
+    # Allow common Next.js dev ports (3000 is default, 3001 when 3000 is in use)
+    ALLOWED_ORIGINS.extend([
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+    ])
+    logger.info("CORS: Allowing localhost:3000/3001 for local development")
 
-# Add production domain from environment if set
-if os.getenv("FRONTEND_URL"):
+# Add configured frontend URL (from settings)
+if settings.frontend_url and settings.frontend_url not in ALLOWED_ORIGINS:
+    ALLOWED_ORIGINS.append(settings.frontend_url)
+
+# Add production domain from environment if set (overrides settings)
+if os.getenv("FRONTEND_URL") and os.getenv("FRONTEND_URL") not in ALLOWED_ORIGINS:
     ALLOWED_ORIGINS.append(os.getenv("FRONTEND_URL"))
 
 # SECURITY: Require at least one origin in production
