@@ -28,7 +28,7 @@ class BotConnectRequest(BaseModel):
 class BotConnectResponse(BaseModel):
     """Response after connecting a Discord bot."""
     id: str
-    guild_id: int
+    guild_id: str  # Use string to preserve precision for large Discord snowflake IDs
     guild_name: str
     connected_at: datetime
     last_sync_at: Optional[datetime] = None
@@ -37,7 +37,7 @@ class BotConnectResponse(BaseModel):
 class BotStatusResponse(BaseModel):
     """Bot connection status."""
     connected: bool
-    guild_id: Optional[int] = None
+    guild_id: Optional[str] = None  # Use string to preserve precision for large Discord snowflake IDs
     guild_name: Optional[str] = None
     last_sync_at: Optional[datetime] = None
 
@@ -75,7 +75,7 @@ async def connect_bot(
     async with get_db_session() as session:
         # Get user UUID from clerk_id
         user_result = await session.execute(
-            text("SELECT id FROM users WHERE clerk_id = :clerk_id"),
+            text("SELECT id FROM app_users WHERE clerk_id = :clerk_id"),
             {"clerk_id": user.clerk_id}
         )
         user_row = user_result.fetchone()
@@ -85,7 +85,7 @@ async def connect_bot(
             user_uuid = str(uuid.uuid4())
             await session.execute(
                 text("""
-                INSERT INTO users (id, clerk_id, email, created_at, subscription_tier)
+                INSERT INTO app_users (id, clerk_id, email, created_at, subscription_tier)
                 VALUES (:id, :clerk_id, :email, :created_at, 'free')
                 """),
                 {
@@ -146,7 +146,7 @@ async def connect_bot(
 
     return BotConnectResponse(
         id=token_id,
-        guild_id=guild_id,
+        guild_id=str(guild_id),  # Convert to string for JSON precision
         guild_name=request.guild_name,
         connected_at=datetime.utcnow(),
     )
@@ -158,7 +158,7 @@ async def get_bot_status(user: User = Depends(get_current_user)):
     async with get_db_session() as session:
         # Get user UUID
         user_result = await session.execute(
-            text("SELECT id FROM users WHERE clerk_id = :clerk_id"),
+            text("SELECT id FROM app_users WHERE clerk_id = :clerk_id"),
             {"clerk_id": user.clerk_id}
         )
         user_row = user_result.fetchone()
@@ -183,7 +183,7 @@ async def get_bot_status(user: User = Depends(get_current_user)):
         if row:
             return BotStatusResponse(
                 connected=True,
-                guild_id=row[0],
+                guild_id=str(row[0]),  # Convert to string for JSON precision
                 guild_name=row[1],
                 last_sync_at=row[2],
             )
@@ -193,14 +193,23 @@ async def get_bot_status(user: User = Depends(get_current_user)):
 
 @router.delete("/disconnect")
 async def disconnect_bot(
-    guild_id: int,
+    guild_id: str,  # Accept as string to preserve precision
     user: User = Depends(get_current_user),
 ):
     """Disconnect a Discord bot by removing the stored token."""
+    # Convert guild_id from string to int for database query
+    try:
+        guild_id_int = int(guild_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid guild_id format"
+        )
+
     async with get_db_session() as session:
         # Get user UUID
         user_result = await session.execute(
-            text("SELECT id FROM users WHERE clerk_id = :clerk_id"),
+            text("SELECT id FROM app_users WHERE clerk_id = :clerk_id"),
             {"clerk_id": user.clerk_id}
         )
         user_row = user_result.fetchone()
@@ -219,7 +228,7 @@ async def disconnect_bot(
             WHERE user_id = :user_id AND guild_id = :guild_id
             RETURNING id
             """),
-            {"user_id": user_uuid, "guild_id": guild_id}
+            {"user_id": user_uuid, "guild_id": guild_id_int}
         )
         deleted = result.fetchone()
         await session.commit()
@@ -230,4 +239,4 @@ async def disconnect_bot(
                 detail="Bot connection not found"
             )
 
-    return {"status": "disconnected", "guild_id": guild_id}
+    return {"status": "disconnected", "guild_id": guild_id}  # Returns as string

@@ -105,7 +105,7 @@ class SaaSDiscordExtractor:
             result = await session.execute(
                 text("""
                 SELECT encrypted_token FROM discord_tokens
-                WHERE user_id = (SELECT id FROM users WHERE clerk_id = :clerk_id)
+                WHERE user_id = (SELECT id FROM app_users WHERE clerk_id = :clerk_id)
                 AND guild_id = :guild_id
                 """),
                 {"clerk_id": self.clerk_id, "guild_id": self.guild_id}
@@ -234,7 +234,12 @@ class SaaSDiscordExtractor:
             # Extract channels and messages
             cutoff = datetime.utcnow() - timedelta(days=self.sync_days)
 
-            for channel in guild.text_channels:
+            # Must fetch channels explicitly since fetch_guild() doesn't populate the cache
+            all_channels = await guild.fetch_channels()
+            text_channels = [ch for ch in all_channels if isinstance(ch, discord.TextChannel)]
+            logger.info(f"Found {len(text_channels)} text channels to extract")
+
+            for channel in text_channels:
                 try:
                     await self._upsert_channel(conn, guild.id, channel)
                     self.stats["channels"] += 1

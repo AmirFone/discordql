@@ -4,15 +4,13 @@ import { useUser } from "@clerk/nextjs";
 import { useState, useEffect, useRef } from "react";
 import { useApi, SubscriptionResponse } from "@/lib/api";
 
-// SECURITY: Allowed domains for redirect URLs (prevent open redirect attacks)
 const ALLOWED_REDIRECT_DOMAINS = ["stripe.com", "checkout.stripe.com", "billing.stripe.com"];
 
 function isValidRedirectUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
     return ALLOWED_REDIRECT_DOMAINS.some(
-      (domain) =>
-        parsed.hostname === domain || parsed.hostname.endsWith("." + domain)
+      (domain) => parsed.hostname === domain || parsed.hostname.endsWith("." + domain)
     );
   } catch {
     return false;
@@ -48,16 +46,11 @@ export default function SettingsPage() {
         });
       } catch (err) {
         console.error("Failed to fetch subscription:", err);
-        setSubscription({
-          tier: "free",
-          status: "active",
-          cancel_at_period_end: false,
-        });
+        setSubscription({ tier: "free", status: "active", cancel_at_period_end: false });
       } finally {
         setLoading(false);
       }
     };
-
     fetchSubscription();
   }, []);
 
@@ -67,7 +60,6 @@ export default function SettingsPage() {
       const data = await apiRequest<{ checkout_url: string }>(`/api/billing/checkout/${plan}`, {
         method: "POST",
       });
-      // SECURITY: Validate redirect URL before navigating
       if (!isValidRedirectUrl(data.checkout_url)) {
         console.error("Invalid checkout URL received:", data.checkout_url);
         alert("Invalid checkout URL. Please contact support.");
@@ -87,7 +79,6 @@ export default function SettingsPage() {
       const data = await apiRequest<{ portal_url: string }>("/api/billing/portal", {
         method: "POST",
       });
-      // SECURITY: Validate redirect URL before navigating
       if (!isValidRedirectUrl(data.portal_url)) {
         console.error("Invalid portal URL received:", data.portal_url);
         alert("Invalid billing portal URL. Please contact support.");
@@ -103,93 +94,191 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+        <div className="loader-gold w-10 h-10" />
       </div>
     );
   }
 
+  const tierConfig = {
+    free: { label: "Starter", color: "bg-cream-500", textColor: "text-obsidian-900" },
+    pro: { label: "Professional", color: "bg-gold-gradient", textColor: "text-obsidian-900" },
+    team: { label: "Enterprise", color: "bg-gold-gradient", textColor: "text-obsidian-900" },
+  };
+
+  const currentTier = tierConfig[subscription?.tier as keyof typeof tierConfig] || tierConfig.free;
+
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-8">Settings</h1>
+    <div className="space-y-8 max-w-4xl">
+      {/* Header */}
+      <div>
+        <h1 className="font-display text-3xl font-bold text-cream-100">Settings</h1>
+        <p className="text-cream-500 mt-1">Manage your account and subscription</p>
+      </div>
 
       {/* Account Info */}
-      <div className="bg-gray-800 p-6 rounded-xl mb-8">
-        <h2 className="text-xl font-semibold mb-4">Account</h2>
-        <div className="space-y-4">
-          <div>
-            <label className="text-gray-400 text-sm">Email</label>
-            <p className="text-white">{user?.primaryEmailAddress?.emailAddress}</p>
+      <div className="premium-card p-6 rounded-2xl">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="w-12 h-12 rounded-xl bg-gold-400/10 border border-gold-400/20 flex items-center justify-center">
+            <svg className="w-6 h-6 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
           </div>
           <div>
-            <label className="text-gray-400 text-sm">Member Since</label>
-            <p className="text-white">
-              {user?.createdAt
-                ? new Date(user.createdAt).toLocaleDateString()
-                : "N/A"}
+            <h2 className="font-display text-xl font-semibold text-cream-100">Account</h2>
+            <p className="text-cream-500 text-sm">Your personal information</p>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-cream-500 mb-1">Email</label>
+            <p className="text-cream-100">{user?.primaryEmailAddress?.emailAddress || "—"}</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-cream-500 mb-1">Member Since</label>
+            <p className="text-cream-100">
+              {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "—"}
             </p>
           </div>
         </div>
       </div>
 
       {/* Subscription */}
-      <div className="bg-gray-800 p-6 rounded-xl mb-8">
-        <h2 className="text-xl font-semibold mb-4">Subscription</h2>
-        <div className="flex items-center gap-4 mb-6">
-          <div className="bg-indigo-600 px-4 py-2 rounded-lg text-sm font-medium uppercase">
-            {subscription?.tier}
+      <div className="premium-card p-6 rounded-2xl">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gold-400/10 border border-gold-400/20 flex items-center justify-center">
+              <svg className="w-6 h-6 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="font-display text-xl font-semibold text-cream-100">Subscription</h2>
+              <p className="text-cream-500 text-sm">Manage your plan</p>
+            </div>
           </div>
-          <span className="text-gray-400">
-            {subscription?.status === "active" ? "Active" : subscription?.status}
-          </span>
+          <div className={`px-4 py-1.5 rounded-full text-sm font-semibold ${currentTier.color} ${currentTier.textColor}`}>
+            {currentTier.label}
+          </div>
         </div>
 
         {subscription?.tier === "free" ? (
           <div className="grid md:grid-cols-2 gap-4">
-            <div className="bg-gray-700 p-4 rounded-lg">
-              <h3 className="font-semibold mb-2">Pro - $9/mo</h3>
-              <ul className="text-gray-400 text-sm space-y-1 mb-4">
-                <li>5 GB storage</li>
-                <li>365 days history</li>
-                <li>Unlimited queries</li>
+            {/* Pro Plan */}
+            <div className="p-5 rounded-xl bg-obsidian-700/50 border border-obsidian-600 hover:border-gold-400/30 transition-colors">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="font-display font-semibold text-cream-100">Professional</h3>
+                  <p className="text-gold-400 font-bold text-2xl mt-1">
+                    $9<span className="text-cream-500 text-sm font-normal">/mo</span>
+                  </p>
+                </div>
+                <div className="w-10 h-10 rounded-lg bg-gold-400/10 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+              </div>
+              <ul className="space-y-2 text-sm text-cream-400 mb-5">
+                <li className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  5 GB storage
+                </li>
+                <li className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  365 days history
+                </li>
+                <li className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Unlimited queries
+                </li>
               </ul>
               <button
                 onClick={() => handleUpgrade("pro")}
                 disabled={upgrading === "pro"}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 px-4 py-2 rounded-lg transition"
+                className="w-full btn-gold py-2.5 rounded-lg text-sm disabled:opacity-50"
               >
-                {upgrading === "pro" ? "Processing..." : "Upgrade to Pro"}
+                {upgrading === "pro" ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="loader-gold w-4 h-4" />
+                    Processing...
+                  </span>
+                ) : (
+                  "Upgrade to Pro"
+                )}
               </button>
             </div>
 
-            <div className="bg-gray-700 p-4 rounded-lg">
-              <h3 className="font-semibold mb-2">Team - $29/mo</h3>
-              <ul className="text-gray-400 text-sm space-y-1 mb-4">
-                <li>25 GB storage</li>
-                <li>Unlimited history</li>
-                <li>API access</li>
+            {/* Team Plan */}
+            <div className="p-5 rounded-xl bg-obsidian-700/50 border border-obsidian-600 hover:border-gold-400/30 transition-colors">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="font-display font-semibold text-cream-100">Enterprise</h3>
+                  <p className="text-gold-400 font-bold text-2xl mt-1">
+                    $29<span className="text-cream-500 text-sm font-normal">/mo</span>
+                  </p>
+                </div>
+                <div className="w-10 h-10 rounded-lg bg-gold-400/10 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+              </div>
+              <ul className="space-y-2 text-sm text-cream-400 mb-5">
+                <li className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  25 GB storage
+                </li>
+                <li className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Unlimited history
+                </li>
+                <li className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  REST API access
+                </li>
               </ul>
               <button
                 onClick={() => handleUpgrade("team")}
                 disabled={upgrading === "team"}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 px-4 py-2 rounded-lg transition"
+                className="w-full btn-outline-gold py-2.5 rounded-lg text-sm disabled:opacity-50"
               >
-                {upgrading === "team" ? "Processing..." : "Upgrade to Team"}
+                {upgrading === "team" ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="loader-gold w-4 h-4" />
+                    Processing...
+                  </span>
+                ) : (
+                  "Upgrade to Enterprise"
+                )}
               </button>
             </div>
           </div>
         ) : (
-          <div>
+          <div className="space-y-4">
             {subscription?.current_period_end && (
-              <p className="text-gray-400 mb-4">
-                {subscription.cancel_at_period_end
-                  ? "Subscription ends on "
-                  : "Next billing date: "}
-                {new Date(subscription.current_period_end).toLocaleDateString()}
+              <p className="text-cream-400">
+                {subscription.cancel_at_period_end ? "Subscription ends on " : "Next billing date: "}
+                <span className="text-cream-100 font-medium">
+                  {new Date(subscription.current_period_end).toLocaleDateString()}
+                </span>
               </p>
             )}
             <button
               onClick={handleManageBilling}
-              className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition"
+              className="btn-outline-gold px-5 py-2.5 rounded-lg text-sm"
             >
               Manage Billing
             </button>
@@ -198,13 +287,25 @@ export default function SettingsPage() {
       </div>
 
       {/* Danger Zone */}
-      <div className="bg-gray-800 p-6 rounded-xl border border-red-900">
-        <h2 className="text-xl font-semibold mb-4 text-red-400">Danger Zone</h2>
-        <p className="text-gray-400 mb-4">
-          Deleting your account will permanently remove all your data, including
-          your database and extraction history. This action cannot be undone.
+      <div className="premium-card p-6 rounded-2xl border-red-500/20">
+        <div className="flex items-center gap-4 mb-4">
+          <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+            <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="font-display text-xl font-semibold text-red-400">Danger Zone</h2>
+            <p className="text-cream-500 text-sm">Irreversible account actions</p>
+          </div>
+        </div>
+
+        <p className="text-cream-400 text-sm mb-4">
+          Deleting your account will permanently remove all your data, including your database,
+          extraction history, and all stored Discord data. This action cannot be undone.
         </p>
-        <button className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition">
+
+        <button className="px-5 py-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors text-sm font-medium">
           Delete Account
         </button>
       </div>

@@ -28,7 +28,7 @@ class ExtractionJobResponse(BaseModel):
     """Response with extraction job details."""
     id: str
     status: str  # pending, running, completed, failed
-    guild_id: int
+    guild_id: str  # Use string to preserve precision for large Discord snowflake IDs
     sync_days: int
     messages_extracted: int = 0  # Default to 0 for NULL values
     started_at: Optional[datetime] = None
@@ -71,7 +71,7 @@ async def start_extraction(
     async with get_db_session() as session:
         # Get user record with UUID and subscription tier
         result = await session.execute(
-            text("SELECT id, subscription_tier FROM users WHERE clerk_id = :clerk_id"),
+            text("SELECT id, subscription_tier FROM app_users WHERE clerk_id = :clerk_id"),
             {"clerk_id": user.clerk_id}
         )
         user_row = result.fetchone()
@@ -170,7 +170,7 @@ async def start_extraction(
     return ExtractionJobResponse(
         id=job_id,
         status="pending",
-        guild_id=guild_id,
+        guild_id=str(guild_id),  # Convert to string for JSON precision
         sync_days=request.sync_days,
         messages_extracted=0,
         started_at=datetime.utcnow(),
@@ -186,7 +186,7 @@ async def get_extraction_status(
     async with get_db_session() as session:
         # Get user UUID
         user_result = await session.execute(
-            text("SELECT id FROM users WHERE clerk_id = :clerk_id"),
+            text("SELECT id FROM app_users WHERE clerk_id = :clerk_id"),
             {"clerk_id": user.clerk_id}
         )
         user_row = user_result.fetchone()
@@ -217,7 +217,7 @@ async def get_extraction_status(
         return ExtractionJobResponse(
             id=str(row[0]),
             status=row[1],
-            guild_id=row[2],
+            guild_id=str(row[2]),  # Convert to string for JSON precision
             sync_days=row[3],
             messages_extracted=row[4] or 0,  # Handle NULL
             started_at=row[5],
@@ -235,7 +235,7 @@ async def get_extraction_history(
     async with get_db_session() as session:
         # Get user UUID
         user_result = await session.execute(
-            text("SELECT id FROM users WHERE clerk_id = :clerk_id"),
+            text("SELECT id FROM app_users WHERE clerk_id = :clerk_id"),
             {"clerk_id": user.clerk_id}
         )
         user_row = user_result.fetchone()
@@ -260,7 +260,7 @@ async def get_extraction_history(
             jobs.append(ExtractionJobResponse(
                 id=str(row[0]),
                 status=row[1],
-                guild_id=row[2],
+                guild_id=str(row[2]),  # Convert to string for JSON precision
                 sync_days=row[3],
                 messages_extracted=row[4] or 0,  # Handle NULL
                 started_at=row[5],
@@ -280,7 +280,7 @@ async def cancel_extraction(
     async with get_db_session() as session:
         # Get user UUID
         user_result = await session.execute(
-            text("SELECT id FROM users WHERE clerk_id = :clerk_id"),
+            text("SELECT id FROM app_users WHERE clerk_id = :clerk_id"),
             {"clerk_id": user.clerk_id}
         )
         user_row = user_result.fetchone()
@@ -314,3 +314,254 @@ async def cancel_extraction(
             )
 
     return {"status": "cancelled", "job_id": job_id}
+
+
+# =============================================================================
+# DEV-ONLY ENDPOINTS - For local testing without Celery
+# =============================================================================
+
+import os
+
+_host = os.getenv("HOST", "127.0.0.1")
+_is_local = _host in ("127.0.0.1", "localhost", "0.0.0.0")
+
+
+class DevExtractionRequest(BaseModel):
+    """Request for dev extraction (bypasses Celery)."""
+    clerk_id: str
+    guild_id: str
+    sync_days: int = 7
+
+
+if _is_local:
+    import logging
+    _logger = logging.getLogger(__name__)
+
+    @router.post("/dev/run-sync", tags=["dev"])
+    async def dev_run_extraction_sync(request: DevExtractionRequest):
+        """
+        DEV ONLY: Run extraction synchronously without Celery.
+        This is for testing the extraction flow directly.
+
+        WARNING: This blocks the request until extraction completes.
+        Only use for testing with small sync_days values.
+        """
+        _logger.warning(f"DEV: Running sync extraction for {request.clerk_id}")
+
+        try:
+            guild_id = int(request.guild_id)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid guild_id format"
+            )
+
+        # Create job record
+        job_id = str(uuid.uuid4())
+
+        async with get_db_session() as session:
+            # Get user UUID
+            user_result = await session.execute(
+                text("SELECT id FROM app_users WHERE clerk_id = :clerk_id"),
+                {"clerk_id": request.clerk_id}
+            )
+            user_row = user_result.fetchone()
+
+            if not user_row:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="User not found. Create user first with /api/auth/dev/create-test-user"
+                )
+
+            user_uuid = str(user_row[0])
+
+            # Verify bot token exists
+            token_result = await session.execute(
+                text("""
+                SELECT id FROM discord_tokens
+                WHERE user_id = :user_id AND guild_id = :guild_id
+                """),
+                {"user_id": user_uuid, "guild_id": guild_id}
+            )
+            if not token_result.fetchone():
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="No Discord bot connected for this guild. Connect bot first."
+                )
+
+            # Create job
+            await session.execute(
+                text("""
+                INSERT INTO extraction_jobs (id, user_id, guild_id, sync_days, status, started_at)
+                VALUES (:id, :user_id, :guild_id, :sync_days, 'running', :started_at)
+                """),
+                {
+                    "id": job_id,
+                    "user_id": user_uuid,
+                    "guild_id": guild_id,
+                    "sync_days": request.sync_days,
+                    "started_at": datetime.utcnow(),
+                }
+            )
+            await session.commit()
+
+        # Run extraction directly (synchronous for testing)
+        try:
+            from services.discord_extractor import run_extraction
+            stats = await run_extraction(
+                clerk_id=request.clerk_id,
+                job_id=job_id,
+                guild_id=guild_id,
+                sync_days=request.sync_days,
+            )
+
+            return {
+                "status": "completed",
+                "job_id": job_id,
+                "stats": stats,
+            }
+
+        except Exception as e:
+            _logger.error(f"DEV extraction failed: {e}")
+            import traceback
+            traceback.print_exc()
+
+            # Update job to failed
+            async with get_db_session() as session:
+                await session.execute(
+                    text("""
+                    UPDATE extraction_jobs
+                    SET status = 'failed', error_message = :error, completed_at = :completed_at
+                    WHERE id = :job_id
+                    """),
+                    {
+                        "job_id": job_id,
+                        "error": str(e),
+                        "completed_at": datetime.utcnow(),
+                    }
+                )
+                await session.commit()
+
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Extraction failed: {str(e)}"
+            )
+
+    @router.get("/dev/test-discord-connection", tags=["dev"])
+    async def dev_test_discord_connection(clerk_id: str, guild_id: str):
+        """
+        DEV ONLY: Test Discord bot connection without extracting data.
+        Verifies the bot can connect and access the guild.
+        """
+        _logger.warning(f"DEV: Testing Discord connection for {clerk_id}")
+
+        try:
+            guild_id_int = int(guild_id)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid guild_id format"
+            )
+
+        # Get token
+        from services.encryption import decrypt_token
+
+        async with get_db_session() as session:
+            result = await session.execute(
+                text("""
+                SELECT dt.encrypted_token, dt.guild_name
+                FROM discord_tokens dt
+                JOIN app_users u ON dt.user_id = u.id
+                WHERE u.clerk_id = :clerk_id AND dt.guild_id = :guild_id
+                """),
+                {"clerk_id": clerk_id, "guild_id": guild_id_int}
+            )
+            row = result.fetchone()
+
+            if not row:
+                return {
+                    "status": "error",
+                    "message": "No Discord token found for this user/guild",
+                    "suggestions": [
+                        "Connect bot first via /api/bot/connect",
+                        "Verify clerk_id and guild_id are correct"
+                    ]
+                }
+
+            encrypted_token = row[0]
+            stored_guild_name = row[1]
+
+        # Decrypt and test connection
+        try:
+            token = decrypt_token(encrypted_token)
+        except Exception as e:
+            return {
+                "status": "error",
+                "message": f"Failed to decrypt token: {e}",
+            }
+
+        # Test Discord connection
+        import discord
+
+        intents = discord.Intents.default()
+        client = discord.Client(intents=intents)
+
+        connection_result = {"status": "unknown"}
+
+        @client.event
+        async def on_ready():
+            nonlocal connection_result
+            try:
+                _logger.info(f"Connected as {client.user}")
+                guild = await client.fetch_guild(guild_id_int)
+                connection_result = {
+                    "status": "success",
+                    "bot_user": str(client.user),
+                    "guild_name": guild.name,
+                    "guild_id": guild.id,
+                    "member_count": guild.member_count,
+                    "stored_guild_name": stored_guild_name,
+                }
+            except discord.NotFound:
+                connection_result = {
+                    "status": "error",
+                    "message": f"Guild {guild_id_int} not found - bot may not be a member",
+                }
+            except discord.Forbidden:
+                connection_result = {
+                    "status": "error",
+                    "message": f"Bot lacks permission to access guild {guild_id_int}",
+                }
+            except Exception as e:
+                connection_result = {
+                    "status": "error",
+                    "message": str(e),
+                }
+            finally:
+                await client.close()
+
+        import asyncio
+
+        try:
+            # Run with timeout
+            await asyncio.wait_for(client.start(token), timeout=30)
+        except asyncio.TimeoutError:
+            connection_result = {
+                "status": "error",
+                "message": "Connection timed out after 30 seconds",
+            }
+        except discord.LoginFailure as e:
+            connection_result = {
+                "status": "error",
+                "message": f"Invalid Discord token: {e}",
+            }
+        except Exception as e:
+            if connection_result["status"] == "unknown":
+                connection_result = {
+                    "status": "error",
+                    "message": str(e),
+                }
+
+        return connection_result
+
+    _logger.info("DEV EXTRACTION ENDPOINTS ENABLED: /api/extraction/dev/* endpoints are available")

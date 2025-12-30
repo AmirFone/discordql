@@ -101,13 +101,13 @@ export function useApi() {
  */
 export interface BotConnectRequest {
   token: string;
-  guild_id: number;
+  guild_id: string;  // Use string to preserve precision for large Discord snowflake IDs
   guild_name: string;
 }
 
 export interface BotConnectResponse {
   id: string;
-  guild_id: number;
+  guild_id: string;  // Use string to preserve precision for large Discord snowflake IDs
   guild_name: string;
   connected_at: string;
   last_sync_at: string | null;
@@ -115,20 +115,20 @@ export interface BotConnectResponse {
 
 export interface BotStatusResponse {
   connected: boolean;
-  guild_id: number | null;
+  guild_id: string | null;  // Use string to preserve precision for large Discord snowflake IDs
   guild_name: string | null;
   last_sync_at: string | null;
 }
 
 export interface ExtractionStartRequest {
-  guild_id: number;
+  guild_id: string;  // Use string to preserve precision for large Discord snowflake IDs
   sync_days: number;
 }
 
 export interface ExtractionJobResponse {
   id: string;
   status: "pending" | "running" | "completed" | "failed" | "cancelled";
-  guild_id: number;
+  guild_id: string;  // Use string to preserve precision for large Discord snowflake IDs
   sync_days: number;
   messages_extracted: number;
   started_at: string | null;
@@ -164,6 +164,18 @@ export interface SchemaResponse {
   tables: TableInfo[];
 }
 
+export interface ExampleQuery {
+  name: string;
+  description: string;
+  category: string;
+  sql: string;
+}
+
+export interface ExampleQueriesResponse {
+  queries: ExampleQuery[];
+  categories: string[];
+}
+
 export interface SubscriptionResponse {
   tier: "free" | "pro" | "team";
   stripe_customer_id: string | null;
@@ -172,4 +184,104 @@ export interface SubscriptionResponse {
   storage_limit_bytes: number;
   queries_this_month: number;
   queries_limit: number;
+}
+
+// Analytics Types
+export interface OverviewStats {
+  total_messages: number;
+  total_users: number;
+  total_channels: number;
+  total_mentions: number;
+  messages_change_percent: number;
+  users_change_percent: number;
+  avg_messages_per_day: number;
+  avg_message_length: number;
+}
+
+export interface TimeSeriesPoint {
+  date: string;
+  count: number;
+}
+
+export interface ChannelStats {
+  channel_id: string;
+  channel_name: string;
+  message_count: number;
+  unique_users: number;
+  avg_message_length: number;
+}
+
+export interface UserStats {
+  user_id: string;
+  username: string;
+  message_count: number;
+  mention_count: number;
+  reply_count: number;
+  avg_message_length: number;
+  is_bot: boolean;
+}
+
+export interface HourlyActivity {
+  hour: number;
+  message_count: number;
+  unique_users: number;
+}
+
+export interface DayOfWeekActivity {
+  day: number;
+  day_name: string;
+  message_count: number;
+}
+
+export interface UserInteraction {
+  from_user: string;
+  to_user: string;
+  mention_count: number;
+  reply_count: number;
+}
+
+export interface ContentMetrics {
+  total_words: number;
+  total_characters: number;
+  avg_words_per_message: number;
+  messages_with_attachments: number;
+  messages_with_embeds: number;
+  messages_with_mentions: number;
+  pinned_messages: number;
+}
+
+export interface EngagementMetrics {
+  reply_rate: number;
+  mention_rate: number;
+  active_user_ratio: number;
+  messages_per_active_user: number;
+}
+
+export interface ChannelGrowth {
+  channel_name: string;
+  current_period: number;
+  previous_period: number;
+  growth_percent: number;
+}
+
+export interface BotVsHuman {
+  human_messages: number;
+  bot_messages: number;
+  human_percentage: number;
+  bot_percentage: number;
+}
+
+export interface AnalyticsResponse {
+  overview: OverviewStats;
+  messages_over_time: TimeSeriesPoint[];
+  hourly_activity: HourlyActivity[];
+  day_of_week_activity: DayOfWeekActivity[];
+  top_channels: ChannelStats[];
+  top_users: UserStats[];
+  user_interactions: UserInteraction[];
+  content_metrics: ContentMetrics;
+  engagement_metrics: EngagementMetrics;
+  channel_growth: ChannelGrowth[];
+  bot_vs_human: BotVsHuman;
+  time_range_days: number;
 }

@@ -12,7 +12,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
 from config import get_settings, validate_startup_config, ConfigurationError
-from api import auth, bot, extraction, query, billing
+from api import auth, bot, extraction, query, billing, analytics
+from db.connection import init_database
 
 
 settings = get_settings()
@@ -93,6 +94,14 @@ async def lifespan(app: FastAPI):
         logger.error(f"Configuration error: {e}")
         raise
 
+    # Initialize database tables
+    try:
+        await init_database()
+        logger.info("Database tables initialized")
+    except Exception as e:
+        logger.error(f"Failed to initialize database: {e}")
+        # Continue anyway - tables might already exist
+
     yield
     # Shutdown
     print("Shutting down...")
@@ -114,9 +123,14 @@ import os
 
 ALLOWED_ORIGINS = []
 
-# Only allow localhost in debug mode
-if settings.debug:
+# Allow localhost for local development
+# Check if running locally (HOST is localhost/127.0.0.1 or DEBUG is true)
+host = os.getenv("HOST", "127.0.0.1")
+is_local = host in ("127.0.0.1", "localhost", "0.0.0.0") or settings.debug
+
+if is_local:
     ALLOWED_ORIGINS.append("http://localhost:3000")  # Next.js dev
+    logger.info("CORS: Allowing http://localhost:3000 for local development")
 
 # Add production domain from environment if set
 if os.getenv("FRONTEND_URL"):
@@ -125,6 +139,8 @@ if os.getenv("FRONTEND_URL"):
 # SECURITY: Require at least one origin in production
 if not ALLOWED_ORIGINS:
     logger.warning("No CORS origins configured - API will reject cross-origin requests")
+
+logger.info(f"CORS allowed origins: {ALLOWED_ORIGINS}")
 
 app.add_middleware(
     CORSMiddleware,
@@ -140,6 +156,7 @@ app.include_router(bot.router, prefix=f"{settings.api_prefix}/bot", tags=["bot"]
 app.include_router(extraction.router, prefix=f"{settings.api_prefix}/extraction", tags=["extraction"])
 app.include_router(query.router, prefix=f"{settings.api_prefix}/query", tags=["query"])
 app.include_router(billing.router, prefix=f"{settings.api_prefix}/billing", tags=["billing"])
+app.include_router(analytics.router, prefix=f"{settings.api_prefix}/analytics", tags=["analytics"])
 
 
 @app.get("/")

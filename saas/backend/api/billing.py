@@ -50,7 +50,7 @@ async def get_subscription(user: User = Depends(get_current_user)):
         result = await session.execute(
             text("""
             SELECT subscription_tier, stripe_customer_id
-            FROM users WHERE clerk_id = :clerk_id
+            FROM app_users WHERE clerk_id = :clerk_id
             """),
             {"clerk_id": user.clerk_id}
         )
@@ -101,7 +101,7 @@ async def create_checkout(
     async with get_db_session() as session:
         result = await session.execute(
             text("""
-            SELECT stripe_customer_id, email FROM users WHERE clerk_id = :clerk_id
+            SELECT stripe_customer_id, email FROM app_users WHERE clerk_id = :clerk_id
             """),
             {"clerk_id": user.clerk_id}
         )
@@ -120,7 +120,7 @@ async def create_checkout(
             # Save customer ID
             await session.execute(
                 text("""
-                UPDATE users SET stripe_customer_id = :customer_id
+                UPDATE app_users SET stripe_customer_id = :customer_id
                 WHERE clerk_id = :clerk_id
                 """),
                 {"customer_id": customer_id, "clerk_id": user.clerk_id}
@@ -152,7 +152,7 @@ async def create_portal_session(user: User = Depends(get_current_user)):
     async with get_db_session() as session:
         result = await session.execute(
             text("""
-            SELECT stripe_customer_id FROM users WHERE clerk_id = :clerk_id
+            SELECT stripe_customer_id FROM app_users WHERE clerk_id = :clerk_id
             """),
             {"clerk_id": user.clerk_id}
         )
@@ -186,7 +186,7 @@ async def get_usage(user: User = Depends(get_current_user)):
         # Get user record with UUID and subscription tier
         user_result = await session.execute(
             text("""
-            SELECT id, subscription_tier FROM users WHERE clerk_id = :clerk_id
+            SELECT id, subscription_tier FROM app_users WHERE clerk_id = :clerk_id
             """),
             {"clerk_id": user.clerk_id}
         )
@@ -287,7 +287,7 @@ async def stripe_webhook(request: Request):
             async with get_db_session() as db_session:
                 await db_session.execute(
                     text("""
-                    UPDATE users SET subscription_tier = :tier
+                    UPDATE app_users SET subscription_tier = :tier
                     WHERE clerk_id = :clerk_id
                     """),
                     {"tier": plan, "clerk_id": clerk_id}
@@ -301,7 +301,7 @@ async def stripe_webhook(request: Request):
         async with get_db_session() as db_session:
             await db_session.execute(
                 text("""
-                UPDATE users SET subscription_tier = 'free'
+                UPDATE app_users SET subscription_tier = 'free'
                 WHERE stripe_customer_id = :customer_id
                 """),
                 {"customer_id": customer_id}
@@ -317,7 +317,7 @@ async def stripe_webhook(request: Request):
             async with get_db_session() as db_session:
                 await db_session.execute(
                     text("""
-                    UPDATE users SET subscription_tier = 'free'
+                    UPDATE app_users SET subscription_tier = 'free'
                     WHERE stripe_customer_id = :customer_id
                     """),
                     {"customer_id": customer_id}

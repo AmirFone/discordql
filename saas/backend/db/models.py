@@ -26,8 +26,9 @@ class User(Base):
     Application user, synced from Clerk.
 
     This is NOT the Discord user table - that lives in each user's database.
+    Uses 'app_users' to avoid conflict with Discord 'users' table.
     """
-    __tablename__ = "users"
+    __tablename__ = "app_users"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     clerk_id = Column(String(255), unique=True, nullable=False, index=True)
@@ -52,7 +53,7 @@ class DiscordToken(Base):
     __tablename__ = "discord_tokens"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("app_users.id", ondelete="CASCADE"), nullable=False)
     encrypted_token = Column(LargeBinary, nullable=False)  # Fernet encrypted
     guild_id = Column(BigInteger)
     guild_name = Column(String(255))
@@ -77,7 +78,7 @@ class ExtractionJob(Base):
     __tablename__ = "extraction_jobs"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("app_users.id", ondelete="CASCADE"), nullable=False)
     guild_id = Column(BigInteger)
     status = Column(String(50), default="pending")  # pending, running, completed, failed, cancelled
     sync_days = Column(Integer, default=30)
@@ -105,7 +106,7 @@ class UsageLog(Base):
     __tablename__ = "usage_logs"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("app_users.id", ondelete="CASCADE"), nullable=False)
     action = Column(String(100), nullable=False)  # 'query', 'extraction'
     storage_bytes = Column(BigInteger, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)

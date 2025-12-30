@@ -168,6 +168,7 @@ async def get_current_user(
 ) -> User:
     """
     Dependency to get the current authenticated user from Clerk JWT.
+    Also accepts dev tokens when running locally.
 
     Usage:
         @router.get("/protected")
@@ -190,7 +191,23 @@ async def get_current_user(
 
     token = parts[1]
 
-    # Validate token
+    # Check if it's a dev token (only works locally)
+    if token.startswith("dev_"):
+        import os
+        _host = os.getenv("HOST", "127.0.0.1")
+        _is_local = _host in ("127.0.0.1", "localhost", "0.0.0.0") or settings.debug
+        if _is_local:
+            # Import here to avoid circular dependency
+            from api.auth import _dev_tokens
+            clerk_id = _dev_tokens.get(token)
+            if clerk_id:
+                return User(clerk_id=clerk_id, email="dev@test.local")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token"
+        )
+
+    # Validate token with Clerk
     claims = await jwt_validator.validate_token(token)
 
     # SECURITY: Validate required claims before creating User
@@ -352,7 +369,7 @@ async def handle_user_created(data: dict):
     async with get_db_session() as session:
         # Check if user already exists
         result = await session.execute(
-            text("SELECT id FROM users WHERE clerk_id = :clerk_id"),
+            text("SELECT id FROM app_users WHERE clerk_id = :clerk_id"),
             {"clerk_id": clerk_id}
         )
         if result.fetchone():
@@ -371,7 +388,7 @@ async def handle_user_created(data: dict):
         user_id = str(uuid.uuid4())
         await session.execute(
             text("""
-            INSERT INTO users (id, clerk_id, email, subscription_tier, neon_branch_id)
+            INSERT INTO app_users (id, clerk_id, email, subscription_tier, neon_branch_id)
             VALUES (:id, :clerk_id, :email, 'free', :neon_branch_id)
             """),
             {
@@ -403,7 +420,7 @@ async def handle_user_deleted(data: dict):
     # Delete user record (cascades to tokens, jobs, etc.)
     async with get_db_session() as session:
         await session.execute(
-            text("DELETE FROM users WHERE clerk_id = :clerk_id"),
+            text("DELETE FROM app_users WHERE clerk_id = :clerk_id"),
             {"clerk_id": clerk_id}
         )
         await session.commit()
@@ -427,9 +444,146 @@ async def handle_user_updated(data: dict):
     if email:
         async with get_db_session() as session:
             await session.execute(
-                text("UPDATE users SET email = :email WHERE clerk_id = :clerk_id"),
+                text("UPDATE app_users SET email = :email WHERE clerk_id = :clerk_id"),
                 {"email": email, "clerk_id": clerk_id}
             )
             await session.commit()
 
         logger.info(f"Updated email for user {clerk_id}")
+
+
+# =============================================================================
+# DEV-ONLY ENDPOINTS - For local testing without Clerk
+# These endpoints are ONLY available when running locally (not in production)
+# =============================================================================
+
+import os
+
+# Check if we're running locally
+_host = os.getenv("HOST", "127.0.0.1")
+_is_local = _host in ("127.0.0.1", "localhost", "0.0.0.0") or settings.debug
+
+
+class DevTokenRequest(BaseModel):
+    """Request for a dev token."""
+    clerk_id: str
+
+
+class DevCreateUserRequest(BaseModel):
+    """Request to create a test user."""
+    clerk_id: str
+    email: str = "test@example.com"
+
+
+class DevTokenResponse(BaseModel):
+    """Response with a dev token."""
+    token: str
+    clerk_id: str
+
+
+# Store active dev tokens (in-memory, resets on server restart)
+_dev_tokens: dict[str, str] = {}
+
+
+async def get_current_user_dev(
+    authorization: Optional[str] = Header(None)
+) -> User:
+    """
+    Dev-only user authentication that accepts dev tokens.
+    Falls back to regular Clerk auth if not a dev token.
+    """
+    if not authorization:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authorization header missing"
+        )
+
+    parts = authorization.split()
+    if len(parts) != 2 or parts[0].lower() != "bearer":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authorization header format"
+        )
+
+    token = parts[1]
+
+    # Check if it's a dev token
+    if token.startswith("dev_"):
+        if not _is_local:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Dev tokens not allowed in production"
+            )
+        clerk_id = _dev_tokens.get(token)
+        if clerk_id:
+            return User(clerk_id=clerk_id, email="dev@test.local")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid dev token"
+        )
+
+    # Fall back to regular Clerk validation
+    return await get_current_user(authorization)
+
+
+if _is_local:
+    @router.post("/dev/create-test-user", tags=["dev"])
+    async def dev_create_test_user(request: DevCreateUserRequest):
+        """
+        DEV ONLY: Create a test user directly in the database.
+        This bypasses Clerk webhook flow for local testing.
+        """
+        logger.warning(f"DEV: Creating test user {request.clerk_id}")
+
+        async with get_db_session() as session:
+            # Check if user already exists
+            result = await session.execute(
+                text("SELECT id FROM app_users WHERE clerk_id = :clerk_id"),
+                {"clerk_id": request.clerk_id}
+            )
+            existing = result.fetchone()
+
+            if existing:
+                return {"status": "exists", "user_id": str(existing[0]), "clerk_id": request.clerk_id}
+
+            # Create user
+            user_id = str(uuid.uuid4())
+            await session.execute(
+                text("""
+                INSERT INTO app_users (id, clerk_id, email, subscription_tier, created_at)
+                VALUES (:id, :clerk_id, :email, 'free', NOW())
+                """),
+                {
+                    "id": user_id,
+                    "clerk_id": request.clerk_id,
+                    "email": request.email,
+                }
+            )
+            await session.commit()
+
+        return {"status": "created", "user_id": user_id, "clerk_id": request.clerk_id}
+
+    @router.post("/dev/token", response_model=DevTokenResponse, tags=["dev"])
+    async def dev_get_token(request: DevTokenRequest):
+        """
+        DEV ONLY: Get a dev token for testing.
+        This token can be used in place of a real Clerk JWT.
+        """
+        logger.warning(f"DEV: Issuing dev token for {request.clerk_id}")
+
+        # Generate a dev token
+        token = f"dev_{uuid.uuid4().hex}"
+        _dev_tokens[token] = request.clerk_id
+
+        return DevTokenResponse(token=token, clerk_id=request.clerk_id)
+
+    @router.get("/dev/verify-token", tags=["dev"])
+    async def dev_verify_token(user: User = Depends(get_current_user_dev)):
+        """
+        DEV ONLY: Verify a dev token works.
+        """
+        return {"valid": True, "clerk_id": user.clerk_id, "email": user.email}
+
+    logger.info("DEV ENDPOINTS ENABLED: /api/auth/dev/* endpoints are available")
+else:
+    logger.info("Production mode: dev endpoints disabled")
