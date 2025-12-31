@@ -1,5 +1,9 @@
 # Discord SQL Analytics
 
+<p align="center">
+  <img src="assets/demo.gif" alt="Discord SQL Analytics Demo" width="100%">
+</p>
+
 We built this because Discord's built-in analytics are useless for understanding how communities actually work. Who replies to whom? Who reacts to whose messages? Which users drive conversations vs. just lurk? Discord won't tell you. So we extract the raw message data, store it in PostgreSQL, and let you query it however you want.
 
 This is a data extraction and analytics pipeline for Discord servers. It pulls messages, reactions, mentions, and user data through the Discord API, stores everything in a properly normalized schema, and gives you SQL access to answer questions Discord can't.
@@ -9,7 +13,7 @@ This is a data extraction and analytics pipeline for Discord servers. It pulls m
 - Extracts messages, reactions, mentions, and reply chains from any Discord server you have bot access to
 - Stores data in PostgreSQL with a schema designed for analytics queries
 - Multi-tenant SaaS version with Row-Level Security (RLS) for tenant isolation
-- Stripe billing integration with free/pro/team tiers
+- Free and open source - no billing tiers
 - Mock Discord client for testing without hitting the real API
 - Realistic data generator that mimics actual Discord usage patterns (60% lurkers, 3% power users, peak-hour activity bias)
 - Materialized views for expensive analytics queries (user interaction matrices, daily stats)
@@ -276,9 +280,9 @@ The `saas/` directory contains a multi-tenant web application built on this extr
 +------------------+     +------------------+     +------------------+
         |                        |
         v                        v
-+------------------+     +------------------+
-|   Stripe Billing |     |   Redis Queue    |
-+------------------+     +------------------+
+                        +------------------+
+                        |   Redis Queue    |
+                        +------------------+
 ```
 
 ### Multi-Tenant Isolation
@@ -314,7 +318,6 @@ await conn.execute("SET LOCAL app.current_tenant = $1", user.clerk_id)
 - Node.js 18+
 - Docker and Docker Compose
 - Clerk account
-- Stripe account (for billing)
 - Neon account (for shared database)
 
 ### Backend Setup
@@ -345,12 +348,6 @@ CLERK_WEBHOOK_SECRET=whsec_...
 
 # Encryption (generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
 DISCORD_TOKEN_ENCRYPTION_KEY=...
-
-# Billing
-STRIPE_SECRET_KEY=sk_live_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-STRIPE_PRICE_PRO=price_...
-STRIPE_PRICE_TEAM=price_...
 
 # Task Queue
 REDIS_URL=redis://localhost:6379
@@ -403,14 +400,6 @@ docker-compose up
 
 This starts PostgreSQL, Redis, the FastAPI backend, and Celery workers.
 
-## Subscription Tiers
-
-| Feature | Free | Pro ($9/mo) | Team ($29/mo) |
-|---------|------|-------------|---------------|
-| Storage | 500 MB | 5 GB | 25 GB |
-| History | 30 days | 365 days | Unlimited |
-| Queries/month | 1,000 | Unlimited | Unlimited |
-
 ## API Endpoints
 
 ### Bot Management
@@ -438,15 +427,6 @@ This starts PostgreSQL, Redis, the FastAPI backend, and Celery workers.
 | GET | `/api/query/schema` | Get table schemas |
 | GET | `/api/query/tables` | List available tables |
 
-### Billing
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/billing/subscription` | Current subscription |
-| POST | `/api/billing/checkout/{plan}` | Start Stripe checkout |
-| POST | `/api/billing/portal` | Open billing portal |
-| GET | `/api/billing/usage` | Current usage stats |
-
 ## Security
 
 ### SQL Injection Prevention
@@ -465,7 +445,7 @@ Discord bot tokens are encrypted at rest using Fernet (AES-128-CBC + HMAC-SHA256
 
 ### Webhook Verification
 
-Both Clerk and Stripe webhooks require valid signatures. Invalid signatures return 400. Missing webhook secrets cause 500 (fail-closed).
+Clerk webhooks require valid signatures. Invalid signatures return 400. Missing webhook secrets cause 500 (fail-closed).
 
 ### Security Headers
 
